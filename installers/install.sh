@@ -33,7 +33,7 @@ echo ""
 echo "${GREEN}York installer${RESET}"
 
 VERSION="${YORK_VERSION:-latest}"
-BASE="${YORK_INSTALL_BASE:-https://raw.githubusercontent.com/TheRealClyp/York/main/examples/site/downloads}"
+BASE="${YORK_INSTALL_BASE:-https://raw.githubusercontent.com/TheRealClyp/York/main/downloads}"
 
 # Detect OS
 case "$(uname -s)" in
