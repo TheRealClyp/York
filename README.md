@@ -1,6 +1,10 @@
 # York
 
-**The speed of C, the feel of Java & JS.**
+**A fast, simple systems language. Clean syntax, one native binary, zero magic.**
+
+Made by [@TheRealClyp](https://github.com/TheRealClyp). This is the York language — nothing else.
+
+
 
 ![Version](https://img.shields.io/badge/version-0.1.0-67e8f9?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-Windows%20x64-blue?style=flat-square)
@@ -8,7 +12,7 @@
 ![License](https://img.shields.io/badge/license-MIT-8A9BD8?style=flat-square)
 
 York is a small, fast systems language. Clean, familiar syntax that compiles to a
-single native binary — no runtime, no garbage collector, no classes.
+single native binary — no runtime, no garbage collector.
 
 ```
 fn main() {
