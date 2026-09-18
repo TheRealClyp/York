@@ -1,27 +1,75 @@
-# York Releases
+# York
 
-Static distribution site for the York compiler — binaries and installers only.
+**The speed of C, the feel of Java & JS.**
 
-Served on GitHub Pages. The compiler **source is not part of this repository**.
+![Version](https://img.shields.io/badge/version-0.1.0-67e8f9?style=flat-square)
+![Platform](https://img.shields.io/badge/platform-Windows%20x64-blue?style=flat-square)
+![Active](https://img.shields.io/badge/status-development-green?style=flat-square)
+![License](https://img.shields.io/badge/license-MIT-8A9BD8?style=flat-square)
 
-## Contents
+York is a small, fast systems language. Clean, familiar syntax that compiles to a
+single native binary — no runtime, no garbage collector, no classes.
 
-| Path | What it is |
+```
+fn main() {
+    let name = "York";
+    printline("Hello, {}!", name);
+}
+```
+
+## Features
+
+- **Fast compiler** — source to native output in seconds, designed for edit-run-fix loops
+- **Tiny output** — one self-contained executable, ~1.3 MB, no dependencies
+- **Simple tooling** — `york new`, `york run`, `york build`
+- **Enums & switch, functions, variables, `if` / `loop`**
+
+## Download (Windows x64)
+
+| Artifact | Notes |
 | --- | --- |
-| `index.html` / `site.js` | The download website (generated, do not edit) |
-| `downloads/york-setup-x64.exe` | Windows installer (Inno Setup, x64) |
-| `downloads/york-x86_64-windows.zip` | Portable archive — `bin\york.exe` |
+| `downloads/york-setup-x64.exe` | Installer — installs to `%LOCALAPPDATA%\Programs\york`, adds PATH, self-verifying uninstaller |
+| `downloads/york-x86_64-windows.zip` | Portable archive — unzip, run `bin\york.exe` |
 | `downloads/york.exe` | Single-file executable — no install |
-| `downloads/SHASUMS256.txt` | SHA-256 checksums for every artifact |
-| `installers/install.ps1` | Windows one-line installer |
-| `installers/install.sh` | POSIX one-line installer (fires when macOS/Linux builds ship) |
-| `CHANGELOG.md` | Release notes |
-| `LICENSE` | Binary-use license |
 
-## Hosting
+Every artifact is verified against `downloads/SHASUMS256.txt` (SHA-256):
 
-1. Push the contents of this directory to a public repo (e.g. `york-lang/york-releases`, branch `main`).
-2. Repo → Settings → Pages → **Deploy from a branch** → branch `main`, folder `/`.
-3. Site appears at `https://{owner}.github.io/{repo}`.
+```
+certutil -hashfile downloads\york.exe SHA256
+```
 
-Everything is referenced with relative paths, so it works under any URL.
+macOS and Linux builds are next in the pipeline.
+
+## One-line install
+
+Windows (PowerShell):
+
+```
+irm https://raw.githubusercontent.com/TheRealClyp/York/main/installers/install.ps1 | iex
+```
+
+macOS / Linux (fires when those builds ship):
+
+```
+curl -fsSL https://raw.githubusercontent.com/TheRealClyp/York/main/installers/install.sh | sh
+```
+
+## Quick start
+
+```
+york new hello
+york run .\hello\main.yk
+```
+
+## Repository layout
+
+```
+downloads/    Official binaries + SHA-256 checksums
+installers/   One-line install scripts
+CHANGELOG.md  Release notes
+LICENSE       MIT — binaries are free to use and redistribute
+```
+
+## License
+
+MIT — see [LICENSE](LICENSE). The compiler source is not distributed publicly.
