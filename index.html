@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<title>York — a fast, simple systems language</title>
+<meta name='description' content='York is a fast, simple systems language: clean syntax, arena memory, and a single native binary. No runtime, no garbage collector. Free Windows binaries.'>
+<meta name='theme-color' content='#04060c'>
+<link rel='canonical' href='https://therealclyp.github.io/York-Website/'>
+<meta property='og:type' content='website'>
+<meta property='og:url' content='https://therealclyp.github.io/York-Website/'>
+<meta property='og:site_name' content='York'>
+<meta property='og:title' content='York — one language, zero magic'>
+<meta property='og:description' content='Fast, simple systems language. Clean syntax, arena memory, single native binary. Free Windows binaries.'>
+<link rel='preconnect' href='https://fonts.googleapis.com'>
+<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
+<link href='https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap' rel='stylesheet'>
+<link rel='icon' href='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%2304070d%22/><text x=%2250%22 y=%2268%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22%2322d3ee%22 font-family=%22monospace%22 font-weight=%22800%22>Y</text></svg>'>
+<style>
+:root{--bg:#04060c;--bg2:#070b14;--panel:rgba(11,17,32,.68);--line:rgba(148,163,184,.14);--txt:#e2e8f0;--mut:#8b98ab;--cy:#22d3ee;--vt:#a78bfa;--ok:#86efac;--grad:linear-gradient(90deg,#22d3ee,#a78bfa)}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:'Space Grotesk','Segoe UI',system-ui,-apple-system,sans-serif;line-height:1.65;overflow-x:hidden;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(148,163,184,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.05) 1px,transparent 1px);background-size:46px 46px;pointer-events:none;z-index:0;mask-image:radial-gradient(ellipse 90% 62% at 50% -8%,#000 28%,transparent 74%);-webkit-mask-image:radial-gradient(ellipse 90% 62% at 50% -8%,#000 28%,transparent 74%)}
+::selection{background:rgba(34,211,238,.28);color:#fff}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--cy);outline-offset:2px;border-radius:4px}
+code.inline{background:rgba(148,163,184,.12);padding:2px 7px;border-radius:6px;font-size:.88em;font-family:'JetBrains Mono',Consolas,monospace}
+.mono{font-family:'JetBrains Mono',Consolas,monospace}
+
+/* ---------- nav ---------- */
+.nav{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:22px;padding:15px clamp(20px,4vw,44px);background:rgba(4,6,12,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid transparent;transition:border-color .3s,box-shadow .3s}
+.nav.scrolled{border-color:var(--line);box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.nav .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.22rem;letter-spacing:.4px;color:var(--txt);text-decoration:none}
+.nav .logo .dot{color:var(--cy)}
+.links{display:flex;align-items:center;gap:24px}
+.links a{color:var(--mut);text-decoration:none;font-size:.94rem;font-weight:500;position:relative;padding:4px 0}
+.links a:hover{color:#fff}
+.links a::after{content:'';position:absolute;left:0;right:100%;bottom:0;height:2px;background:var(--grad);transition:right .22s ease}
+.links a:hover::after{right:0}
+.nav .spacer{flex:1}
+.nav .ver{border:1px solid var(--line);border-radius:999px;padding:3px 12px;font-size:.73rem;color:var(--cy);font-family:'JetBrains Mono',Consolas,monospace}
+.nav .cta{background:var(--grad);color:#04121a !important;font-weight:700;padding:10px 20px;border-radius:10px;box-shadow:0 6px 24px rgba(34,211,238,.25)}
+.nav .cta:hover{filter:brightness(1.1);color:#04121a !important}
+.nav .cta::after{display:none}
+.burger{display:none;background:none;border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:8px 13px;font-size:1.05rem;cursor:pointer;font-family:inherit}
+@media(max-width:820px){.links{position:absolute;top:100%;left:0;right:0;display:none;flex-direction:column;align-items:flex-start;gap:16px;background:rgba(4,6,12,.97);padding:20px 24px;border-bottom:1px solid var(--line)}.links.open{display:flex}.burger{display:inline-block}.nav .ver,.nav .cta{display:none}}
+
+/* ---------- hero ---------- */
+.hero{position:relative;z-index:1;text-align:center;padding:110px 24px 40px;overflow:hidden}
+.hero .orb{position:absolute;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:-1}
+.hero .o1{width:520px;height:520px;background:rgba(34,211,238,.15);top:-160px;left:-120px}
+.hero .o2{width:460px;height:460px;background:rgba(167,139,250,.13);top:-90px;right:-140px}
+.kicker{display:inline-flex;align-items:center;gap:10px;border:1px solid var(--line);background:rgba(11,17,32,.6);padding:7px 16px;border-radius:999px;font-size:.78rem;color:var(--mut);letter-spacing:.35px;font-family:'JetBrains Mono',Consolas,monospace}
+.kicker em{font-style:normal;color:var(--vt)}
+.kicker b{color:var(--cy)}
+.hero h1{font-size:clamp(2.7rem,7vw,5.2rem);font-weight:800;letter-spacing:-1.6px;line-height:1.04;margin:28px 0 20px}
+.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.lead{font-size:clamp(1.04rem,2.4vw,1.32rem);color:var(--mut);max-width:680px;margin:0 auto 32px}
+.buttons{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:9px;text-decoration:none;font-weight:700;border-radius:12px;padding:14px 26px;font-size:1rem;transition:transform .18s ease,box-shadow .18s ease,background .18s ease,border-color .18s ease}
+.btn:hover{transform:translateY(-2px);text-decoration:none}
+.btn.primary{background:var(--grad);color:#04121a;box-shadow:0 12px 36px rgba(34,211,238,.28)}
+.btn.primary:hover{box-shadow:0 16px 46px rgba(34,211,238,.42)}
+.btn.ghost{border:1px solid var(--line);color:var(--txt);background:rgba(11,17,32,.5)}
+.btn.ghost:hover{border-color:rgba(34,211,238,.5);background:rgba(34,211,238,.06)}
+.chips{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+.chip{border:1px solid var(--line);background:rgba(11,17,32,.55);color:var(--mut);padding:8px 16px;border-radius:999px;font-size:.82rem;font-family:'JetBrains Mono',Consolas,monospace}
+.chip b{color:var(--cy)}
+
+/* ---------- hero terminal ---------- */
+.term{position:relative;max-width:780px;margin:48px auto 0;text-align:left;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:rgba(7,11,20,.92);box-shadow:0 34px 90px rgba(0,0,0,.55)}
+.term .tbar{display:flex;align-items:center;gap:8px;padding:12px 16px;background:rgba(13,20,34,.6);border-bottom:1px solid var(--line)}
+.term .tbar .dot{width:11px;height:11px;border-radius:50%}
+.term .tbar .name{color:var(--mut);font-family:'JetBrains Mono',Consolas,monospace;font-size:.76rem;margin-left:10px;letter-spacing:.4px}
+.term pre{margin:0;padding:20px 24px;font-family:'JetBrains Mono',Consolas,monospace;font-size:.86rem;line-height:1.62;color:var(--txt);white-space:pre;overflow-x:auto;min-height:220px}
+.cursor{display:inline-block;width:8px;height:16px;background:var(--cy);vertical-align:-2px;animation:blink 1.05s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.term .out{color:var(--ok)}
+.term .dim{color:#4b5865}
+
+/* ---------- ticker ---------- */
+.ticker{position:relative;z-index:1;overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:rgba(11,17,32,.4);padding:15px 0;margin-top:56px}
+.ticker .wrap{display:flex;gap:52px;white-space:nowrap;width:max-content;animation:scroll 34s linear infinite}
+.ticker span{font-family:'JetBrains Mono',Consolas,monospace;color:var(--mut);font-size:.85rem}
+.ticker span b{color:var(--cy)}
+.ticker span em{font-style:normal;color:var(--vt)}
+@keyframes scroll{to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.ticker .wrap{animation:none}}
+
+/* ---------- stats ---------- */
+.stats{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;max-width:1040px;margin:0 auto;padding:64px clamp(20px,4vw,40px) 10px}
+.stat{text-align:center;padding:26px 12px;border:1px solid var(--line);border-radius:18px;background:rgba(11,17,32,.6)}
+.stat .n{font-size:2.3rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat .l{color:var(--mut);font-size:.84rem;margin-top:4px}
+@media(max-width:720px){.stats{grid-template-columns:1fr 1fr}}
+
+/* ---------- sections & cards ---------- */
+section{position:relative;z-index:1;padding:76px clamp(20px,4vw,40px);max-width:1100px;margin:0 auto}
+.eyebrow{text-align:center;font-family:'JetBrains Mono',Consolas,monospace;font-size:.76rem;color:var(--cy);letter-spacing:2.4px;text-transform:uppercase;margin-bottom:12px}
+section h2{font-size:clamp(1.7rem,3.5vw,2.4rem);text-align:center;letter-spacing:-.6px;margin-bottom:12px;line-height:1.15}
+section .desc{color:var(--mut);text-align:center;max-width:660px;margin:0 auto 46px;font-size:1.02rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:20px}
+.card{position:relative;background:rgba(11,17,32,.72);border:1px solid var(--line);border-radius:18px;padding:26px;overflow:hidden;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.card::before{content:'';position:absolute;inset:0;background:radial-gradient(600px 130px at 50% -50px,rgba(34,211,238,.09),transparent);opacity:0;transition:opacity .25s}
+.card:hover{transform:translateY(-4px);border-color:rgba(34,211,238,.4);box-shadow:0 20px 55px rgba(0,0,0,.5)}
+.card:hover::before{opacity:1}
+.card .icon{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.25);color:var(--cy);margin-bottom:16px}
+.card .icon svg{width:22px;height:22px}
+.card h3{color:#f1f5f9;margin-bottom:9px;font-size:1.07rem;position:relative;z-index:1}
+.card p{color:var(--mut);font-size:.94rem;position:relative;z-index:1}
+
+/* ---------- code viewer ---------- */
+.codewin{max-width:880px;margin:0 auto;border:1px solid var(--line);border-radius:18px;background:rgba(7,11,20,.94);overflow:hidden;box-shadow:0 34px 90px rgba(0,0,0,.5)}
+.codewin .tabs{display:flex;gap:6px;padding:13px 16px;background:rgba(13,20,34,.6);border-bottom:1px solid var(--line);overflow-x:auto}
+.codewin .tab{border:1px solid transparent;background:none;color:var(--mut);font-family:'JetBrains Mono',Consolas,monospace;font-size:.79rem;padding:7px 14px;border-radius:8px;cursor:pointer;white-space:nowrap;transition:color .15s,background .15s}
+.codewin .tab:hover{color:#fff;background:rgba(148,163,184,.08)}
+.codewin .tab.active{color:#04121a;background:var(--grad);font-weight:700}
+.snipp{display:none;margin:0;padding:22px 24px;font-family:'JetBrains Mono',Consolas,monospace;font-size:.86rem;line-height:1.65;color:var(--txt);overflow-x:auto;max-height:560px}
+.snipp.active{display:block}
+pre .k{color:#c792ea}pre .t{color:#6db3ff}pre .s{color:#c3e88d}pre .f{color:#f78c6c}pre .c{color:#5c6773}pre .u{color:#ffcb6b}
+
+/* ---------- learn ---------- */
+.lcard{display:flex;align-items:center;gap:16px;background:rgba(11,17,32,.72);border:1px solid var(--line);border-radius:16px;padding:18px 20px;text-decoration:none;transition:transform .2s ease,border-color .2s ease}
+.lcard:hover{transform:translateY(-3px);border-color:rgba(34,211,238,.4);text-decoration:none}
+.lcard .f{font-family:'JetBrains Mono',Consolas,monospace;font-size:.8rem;color:var(--cy);white-space:nowrap}
+.lcard .t{flex:1;min-width:0}
+.lcard .t b{display:block;color:#f1f5f9;font-size:.98rem}
+.lcard .t span{color:var(--mut);font-size:.85rem}
+.lcard .ar{color:var(--vt)}
+
+/* ---------- quickstart ---------- */
+.qs .step{display:flex;gap:18px;align-items:flex-start;margin-bottom:26px;max-width:760px;margin-left:auto;margin-right:auto}
+.qs .step .num{flex:0 0 40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(34,211,238,.22),rgba(167,139,250,.22));border:1px solid rgba(34,211,238,.35);color:var(--cy);font-weight:800;display:grid;place-items:center}
+.qs .step p{color:var(--mut);font-size:.96rem;margin-bottom:10px}
+.cmdrow{display:flex;gap:10px;margin-top:6px}
+.cmdrow pre{flex:1;background:rgba(7,11,20,.85);border:1px solid var(--line);border-radius:11px;padding:12px 16px;font-family:'JetBrains Mono',Consolas,monospace;font-size:.85rem;color:#d8e2ee;margin:0;overflow-x:auto}
+.copy{background:rgba(34,211,238,.12);color:var(--cy);border:1px solid rgba(34,211,238,.3);border-radius:9px;padding:10px 14px;font-family:'JetBrains Mono',Consolas,monospace;font-size:.74rem;cursor:pointer;transition:background .15s,transform .15s;white-space:nowrap}
+.copy:hover{background:rgba(34,211,238,.24)}
+.copy:active{transform:scale(.96)}
+.copy.done{color:#04121a;background:var(--grad);border-color:transparent;font-weight:700}
+
+/* ---------- install ---------- */
+.download{position:relative;text-align:center;background:rgba(11,17,32,.7);border:1px solid var(--line);border-radius:26px;padding:52px 28px;overflow:hidden}
+.download::before{content:'';position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:600px;height:300px;background:radial-gradient(closest-side,rgba(34,211,238,.14),transparent);pointer-events:none}
+.dlbtn{position:relative;display:inline-flex;align-items:center;gap:10px;background:var(--grad);color:#04121a;font-weight:800;padding:18px 40px;border-radius:14px;font-size:1.12rem;text-decoration:none;box-shadow:0 16px 48px rgba(34,211,238,.35);transition:transform .18s ease,box-shadow .18s ease}
+.dlbtn:hover{transform:translateY(-3px);box-shadow:0 22px 58px rgba(34,211,238,.45);text-decoration:none}
+.dlsmall{color:var(--mut);margin-top:16px;font-size:.88rem}
+.dlrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px;position:relative}
+.mini{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);color:#d8e2ee;padding:10px 18px;border-radius:11px;font-size:.86rem;font-family:'JetBrains Mono',Consolas,monospace;text-decoration:none;transition:border-color .15s,background .15s}
+.mini:hover{border-color:rgba(34,211,238,.5);background:rgba(34,211,238,.06);text-decoration:none}
+.relband{max-width:820px;margin:0 auto 26px;text-align:center;background:linear-gradient(90deg,rgba(34,211,238,.07),rgba(167,139,250,.07));border:1px solid var(--line);color:var(--mut);font-size:.84rem;padding:10px 18px;border-radius:999px;font-family:'JetBrains Mono',Consolas,monospace}
+.relband b{color:var(--cy)}
+.ostabs{display:flex;gap:8px;justify-content:center;margin:36px 0 22px;flex-wrap:wrap}
+.osbtn{background:rgba(11,17,32,.6);border:1px solid var(--line);color:var(--mut);padding:10px 22px;border-radius:10px;font-weight:600;cursor:pointer;font-size:.9rem;font-family:inherit;transition:background .15s,border-color .15s,color .15s}
+.osbtn:hover{border-color:rgba(34,211,238,.4);color:#fff}
+.osbtn.active{background:var(--grad);border-color:transparent;color:#04121a;font-weight:700}
+.pane{display:none;background:rgba(11,17,32,.72);border:1px solid var(--line);border-radius:20px;padding:28px}
+.pane.active{display:block}
+.pane h3{margin-bottom:6px;color:#f1f5f9}
+.pane .note{color:var(--mut);font-size:.92rem;margin-bottom:16px}
+.dltable{width:100%;border-collapse:collapse;margin-top:12px;font-size:.9rem}
+.dltable th{text-align:left;color:#5c6773;font-weight:600;padding:10px 12px;border-bottom:1px solid var(--line);font-size:.72rem;text-transform:uppercase;letter-spacing:.8px}
+.dltable td{padding:12px;border-bottom:1px solid rgba(148,163,184,.08);color:#c9d6e3;vertical-align:middle}
+.dltable td b{color:#eef2f7}
+.dltable .sub{color:#5c6773;font-size:.78rem;display:block;margin-top:2px}
+.dltable .sz{color:var(--mut);white-space:nowrap;font-family:'JetBrains Mono',Consolas,monospace;font-size:.8rem}
+.cardwrap{display:flex;gap:10px;justify-content:flex-end}
+@media(max-width:640px){.dltable{display:block;overflow-x:auto;white-space:nowrap}}
+.sha{text-align:center;color:#5c6773;font-size:.78rem;margin-top:20px}
+.sha a{color:var(--cy)}
+
+/* ---------- faq ---------- */
+.faq details{border:1px solid var(--line);background:rgba(11,17,32,.6);border-radius:14px;padding:18px 22px;margin-bottom:12px;transition:border-color .15s}
+.faq details[open]{border-color:rgba(34,211,238,.35)}
+.faq summary{cursor:pointer;font-weight:700;color:#f1f5f9;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:'+';color:var(--cy);font-family:'JetBrains Mono',Consolas,monospace;font-size:1.15rem;transition:transform .2s}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq details p{margin-top:12px;color:var(--mut);font-size:.95rem}
+
+/* ---------- footer & extras ---------- */
+.footer{position:relative;z-index:1;border-top:1px solid var(--line);padding:50px clamp(20px,4vw,40px) 40px;text-align:center;color:var(--mut);font-size:.88rem}
+.footer .flinks{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+.footer .flinks a{color:var(--mut);text-decoration:none}
+.footer .flinks a:hover{color:#fff}
+.footer .meta{font-family:'JetBrains Mono',Consolas,monospace;color:#5c6773;font-size:.76rem;margin-top:14px}
+.footer .made{color:var(--vt)}
+#topbtn{position:fixed;right:24px;bottom:24px;z-index:70;width:46px;height:46px;border-radius:12px;border:1px solid var(--line);background:rgba(11,17,32,.9);color:var(--cy);font-size:1.1rem;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;font-family:inherit}
+#topbtn.on{opacity:1;pointer-events:auto}
+#topbtn:hover{transform:translateY(-3px)}
+
+/* ---------- reveal / motion / responsive ---------- */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+.reveal.show{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}.cursor{animation:blink 1.4s steps(1) infinite}}
+@media(max-width:900px){.hero{padding-top:84px}.c2{grid-template-columns:1fr!important}}
+</style>
+</head>
+<body>
+<nav class='nav' id='nav'>
+<a class='logo' href='#top'><svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 100 100' style='vertical-align:-6px'><defs><linearGradient id='lg' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#22d3ee'/><stop offset='1' stop-color='#a78bfa'/></linearGradient></defs><rect width='100' height='100' rx='22' fill='#0b1120'/><rect width='100' height='100' rx='22' fill='none' stroke='rgba(148,163,184,.25)'/><text x='50' y='69' font-size='58' text-anchor='middle' fill='url(#lg)' font-family='monospace' font-weight='800'>Y</text></svg>York<span class='dot'>.</span></a>
+<div class='links' id='links'>
+<a href='#features'>Features</a>
+<a href='#code'>Code</a>
+<a href='#learn'>Learn</a>
+<a href='#quickstart'>Quickstart</a>
+<a href='#install'>Install</a>
+<a href='#cli'>CLI</a>
+<a href='#faq'>FAQ</a>
+</div>
+<div class='spacer'></div>
+<span class='ver'>v0.1.0</span>
+<a class='cta' href='#install'>Get York</a>
+<button class='burger' id='burger' type='button' aria-label='Menu'>☰</button>
+</nav>
+<main id='top'>
+<div class='hero'>
+<div class='orb o1'></div>
+<div class='orb o2'></div>
+<span class='kicker'>YORK <em>v0.1.0</em> · OUT NOW <b>· FREE BINARIES</b></span>
+<h1>One language.<br><span class='grad'>Zero magic.</span></h1>
+<p class='lead'>York is a fast, simple systems language. Clean syntax, arena memory, and a single native binary — no runtime, no garbage collector, no surprises.</p>
+<div class='buttons'>
+<a class='btn primary' href='#install'>Get York for Windows</a>
+<a class='btn ghost' href='#code'>See the code</a>
+</div>
+<div class='chips'>
+<span class='chip'>latest <b>v0.1.0</b></span>
+<span class='chip'>Windows <b>x64 today</b> — macOS &amp; Linux soon</span>
+<span class='chip'>zero <b>dependencies</b> at runtime</span>
+<span class='chip'>free <b>binaries</b>, no sign-up</span>
+</div>
+<div class='term'>
+<div class='tbar'>
+<span class='dot' style='background:#ff5f56'></span>
+<span class='dot' style='background:#ffbd2e'></span>
+<span class='dot' style='background:#27c93f'></span>
+<span class='name'>hello.yk — york run main.yk</span>
+</div>
+<pre id='heroterm' aria-label='Live York demo'></pre>
+</div>
+</div>
+<div class='ticker'><div class='wrap'>
+<span>fast <b>compiler</b></span>
+<span>native <em>single binary</em></span>
+<span>arena <b>memory</b></span>
+<span>type-safe <em>enums</em></span>
+<span>no <b>garbage collector</b></span>
+<span>honest <em>errors</em></span>
+<span>one-command <b>install</b></span>
+<span>browser target <em>on the way</em></span>
+<span>fast <b>compiler</b></span>
+<span>native <em>single binary</em></span>
+<span>arena <b>memory</b></span>
+<span>type-safe <em>enums</em></span>
+<span>no <b>garbage collector</b></span>
+<span>honest <em>errors</em></span>
+<span>one-command <b>install</b></span>
+<span>browser target <em>on the way</em></span>
+</div></div>
+<div class='stats'>
+<div class='stat'><div class='n'>0.1.0</div><div class='l'>Latest release</div></div>
+<div class='stat'><div class='n'>1</div><div class='l'>Native binary out</div></div>
+<div class='stat'><div class='n'>0</div><div class='l'>GC · runtime · magic</div></div>
+<div class='stat'><div class='n'>3</div><div class='l'>OS targets · win · mac · linux</div></div>
+</div>
+<section id='features'>
+<div class='eyebrow'>Why York</div>
+<h2>Built for how you actually code</h2>
+<p class='desc'>Familiar structure, honest performance, zero ceremony. Here is what makes York worth your time — and what it deliberately skips.</p>
+<div class='grid'>
+<div class='card'>
+<div class='icon'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M13 2 3 14h9l-1 8 10-12h-9l1-8z'/></svg></div>
+<h3>Fast by design</h3>
+<p>A friendly pipeline compiles source straight to native output in seconds. Built for edit-run-fix loops, not coffee breaks.</p>
+</div>
+<div class='card'>
+<div class='icon'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='7' y='7' width='10' height='10' rx='2'/><path d='M10 2v4M14 2v4M10 18v4M14 18v4M2 10h4M2 14h4M18 10h4M18 14h4'/></svg></div>
+<h3>Arena memory</h3>
+<p>Stack-like arenas with stash semantics. Fast, predictable, and trivially safe — no garbage collector, no pauses, nothing hidden.</p>
+</div>
+<div class='card'>
+<div class='icon'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polygon points='12 2 2 7 12 12 22 7 12 2'/><polyline points='2 17 12 22 22 17'/><polyline points='2 12 12 17 22 12'/></svg></div>
+<h3>Single native binary</h3>
+<p>York compiles down to true native code. Drop the binary anywhere and it just runs — no runtime, no shared libs to chase.</p>
+</div>
+<div class='card'>
+<div class='icon'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/><path d='m9 12 2 2 4-4'/></svg></div>
+<h3>Verified downloads</h3>
+<p>Every artifact on this site is pinned to a SHA-256 checksum served in the same place. What you see is exactly what runs.</p>
+</div>
+<div class='card'>
+<div class='icon'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='16 18 22 12 16 6'/><polyline points='8 6 2 12 8 18'/></svg></div>
+<h3>Familiar syntax</h3>
+<p>Typed parameters, methods, enums, loops. The structure you already know — no boilerplate, no ceremony, no learning cliff.</p>
+</div>
+<div class='card'>
+<div class='icon'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='4 17 10 11 4 5'/><line x1='12' y1='19' x2='20' y2='19'/></svg></div>
+<h3>One-command install</h3>
+<p>A tiny installer puts york on your PATH in one line. Nothing else to install, nothing left dangling, nothing hidden.</p>
+</div>
+</div>
+</section>
+<section id='code'>
+<div class='eyebrow'>The language</div>
+<h2>Written the way you already think</h2>
+<p class='desc'>Value semantics by default. When you read from an arena you get a copy — mutation is explicit. Click through the tabs.</p>
+<div class='codewin'>
+<div class='tabs' role='tablist'>
+<button class='tab active' data-snip='hello'>hello.yk</button>
+<button class='tab' data-snip='structs'>structs.yk</button>
+<button class='tab' data-snip='enums'>enums.yk</button>
+<button class='tab' data-snip='arena'>arena.yk</button>
+</div>
+<pre class='snipp' data-snip='hello'><code>
+<span class='c'>// hello in York</span>
+<span class='k'>public static void</span> <span class='f'>main</span>(<span class='t'>String</span>[] args) {
+    <span class='f'>println</span>(<span class='s'>"Hello, York!"</span>);
+}
+<span class='dim'>$ york run hello.yk</span>
+<span class='s'>Hello, York!</span>
+</code></pre>
+<pre class='snipp' data-snip='structs'><code>
+<span class='k'>struct</span> <span class='t'>Player</span> {
+    <span class='t'>float</span> pos;
+    <span class='t'>float</span> hp;
+}
+
+<span class='k'>impl</span> <span class='t'>Player</span> {
+    <span class='t'>void</span> <span class='f'>damage</span>(<span class='t'>float</span> amount) {
+        <span class='k'>this</span>.hp -= amount;
+        <span class='k'>if</span> (<span class='k'>this</span>.hp &lt; 0.0) { <span class='k'>this</span>.hp = 0.0; }
+    }
+}
+</code></pre>
+<pre class='snipp' data-snip='enums'><code>
+<span class='k'>enum</span> <span class='t'>Dir</span> { <span class='t'>North</span>, <span class='t'>East</span>, <span class='t'>South</span>, <span class='t'>West</span> }
+
+<span class='k'>void</span> <span class='f'>describe</span>(<span class='t'>Dir</span> d) {
+    <span class='k'>switch</span> (d) {
+        <span class='k'>case</span> <span class='t'>Dir</span>.North: <span class='f'>println</span>(<span class='s'>"up"</span>);   <span class='k'>break</span>;
+        <span class='k'>case</span> <span class='t'>Dir</span>.South: <span class='f'>println</span>(<span class='s'>"down"</span>); <span class='k'>break</span>;
+        <span class='k'>default</span>:       <span class='f'>println</span>(<span class='s'>"sideways"</span>);
+    }
+}
+</code></pre>
+<pre class='snipp' data-snip='arena'><code>
+<span class='c'>// a packed little game loop</span>
+<span class='t'>Arena</span>&lt;<span class='t'>Player</span>&gt; players = <span class='k'>new</span> <span class='t'>Arena</span>(1000);
+players.<span class='f'>push</span>(<span class='t'>Player</span> { pos: 1.0, hp: 100.0 });
+
+<span class='k'>for</span> (<span class='t'>Player</span> p : players) {
+    p.<span class='f'>damage</span>(10.0);
+    <span class='f'>println</span>(p.hp);
+}
+</code></pre>
+</div>
+</section>
+<section id='learn'>
+<div class='eyebrow'>Learn York</div>
+<h2>From zero to running — today</h2>
+<p class='desc'>Five tiny lessons, each one compiles and runs. Work through them in order and you are writing York before dinner.</p>
+<div class='grid'>
+<a class='lcard' href='https://github.com/TheRealClyp/York/blob/main/examples/README.md' target='_blank' rel='noopener'>
+<span class='f'>README.md</span>
+<span class='t'><b>The Learn York guide</b><span>Start here — what each lesson teaches and how to run it</span></span>
+<span class='ar'>→</span>
+</a>
+<a class='lcard' href='https://github.com/TheRealClyp/York/blob/main/examples/hello.yk' target='_blank' rel='noopener'>
+<span class='f'>hello.yk</span>
+<span class='t'><b>Your first program</b><span>Printing, the entry point, and the run loop</span></span>
+<span class='ar'>→</span>
+</a>
+<a class='lcard' href='https://github.com/TheRealClyp/York/blob/main/examples/vars.yk' target='_blank' rel='noopener'>
+<span class='f'>vars.yk</span>
+<span class='t'><b>Variables & types</b><span>Typed values, mutation, and the basics of data</span></span>
+<span class='ar'>→</span>
+</a>
+<a class='lcard' href='https://github.com/TheRealClyp/York/blob/main/examples/funcs.yk' target='_blank' rel='noopener'>
+<span class='f'>funcs.yk</span>
+<span class='t'><b>Functions</b><span>Parameters, return types, and small helpers</span></span>
+<span class='ar'>→</span>
+</a>
+<a class='lcard' href='https://github.com/TheRealClyp/York/blob/main/examples/enums.yk' target='_blank' rel='noopener'>
+<span class='f'>enums.yk</span>
+<span class='t'><b>Enums & switch</b><span>Type-safe variants and exhaustive branches</span></span>
+<span class='ar'>→</span>
+</a>
+<a class='lcard' href='https://github.com/TheRealClyp/York/blob/main/examples/structs.yk' target='_blank' rel='noopener'>
+<span class='f'>structs.yk</span>
+<span class='t'><b>Structs & impls</b><span>Data with behavior — methods without the ceremony</span></span>
+<span class='ar'>→</span>
+</a>
+</div>
+</section>
+<section id='quickstart'>
+<div class='eyebrow'>Quickstart</div>
+<h2>Hello, York — in three steps</h2>
+<p class='desc'>Install once, then this is the whole flow. No build files to hand-edit.</p>
+<div class='qs'>
+<div class='step'>
+<div class='num'>1</div>
+<div>
+<p>Scaffold a project. York drops a starter <code class='inline'>main.yk</code> you can open and edit.</p>
+<div class='cmdrow'><pre>york new hello</pre><button class='copy' type='button'>copy</button></div>
+</div>
+</div>
+<div class='step'>
+<div class='num'>2</div>
+<div>
+<p>Step inside and write some code.</p>
+<div class='cmdrow'><pre>cd hello</pre><button class='copy' type='button'>copy</button></div>
+</div>
+</div>
+<div class='step'>
+<div class='num'>3</div>
+<div>
+<p>Compile to native and run — the whole loop is one command.</p>
+<div class='cmdrow'><pre>york run main.yk</pre><button class='copy' type='button'>copy</button></div>
+</div>
+</div>
+</div>
+<div class='term'>
+<div class='tbar'>
+<span class='dot' style='background:#ff5f56'></span>
+<span class='dot' style='background:#ffbd2e'></span>
+<span class='dot' style='background:#27c93f'></span>
+<span class='name'>hello</span>
+</div>
+<pre>
+<span class='dim'>$</span> york run main.yk
+<span class='dim'>compiling hello ...</span>
+<span class='out'>Hello, York!</span>
+<span class='dim'>$</span>
+</pre>
+</div>
+</section>
+<section id='install'>
+<div class='eyebrow'>Download</div>
+<h2>Get York</h2>
+<div class='relband'>v0.1.0 · Windows x64 <b>available</b> · Linux x86_64 &amp; arm64 <b>available</b> · SHA-256 verified · macOS on the way</div>
+<div class='download'>
+<a class='dlbtn' id='dlbtn' href='downloads/york-setup-x64.exe'>Download for your OS</a>
+<p class='dlsmall' id='dlhint'>Your OS is auto-detected. Grab the installer or the portable archive.</p>
+<div class='dlrow'>
+<a class='mini' href='downloads/york-setup-x64.exe'>Windows .exe</a>
+<a class='mini' href='downloads/york-x86_64-windows.zip'>Windows .zip</a>
+<a class='mini' href='downloads/york-x86_64-linux.tar.gz'>Linux .tar.gz</a>
+<a class='mini' href='downloads/york.exe'>york.exe</a>
+<a class='mini' href='downloads/SHASUMS256.txt'>checksums</a>
+</div>
+</div>
+<div class='ostabs'>
+<button class='osbtn active' data-os='windows' type='button'>Windows</button>
+<button class='osbtn' data-os='macos' type='button'>macOS</button>
+<button class='osbtn' data-os='linux' type='button'>Linux</button>
+<button class='osbtn' data-os='more' type='button'>Release notes</button>
+</div>
+<div class='pane active' data-os='windows'>
+<h3>Windows — everything you need</h3>
+<p class='note'>The installer is the node-style route — double-click, live progress, PATH added, self-verifying. The archive and single-file build are portable.</p>
+<table class='dltable'>
+<tr><th>Artifact</th><th>Why you want it</th><th>Size</th><th></th></tr>
+<tr><td><b>york-setup-x64.exe</b></td><td>GUI installer — live progress, adds PATH, verifies itself<span class='sub'>recommended</span></td><td class='sz'>~ 0.9 MB</td><td><div class='cardwrap'><a class='mini' href='downloads/york-setup-x64.exe'>Download</a></div></td></tr>
+<tr><td><b>york-x86_64-windows.zip</b></td><td>Portable — unzip and run <code class='inline'>bin\york.exe</code><span class='sub'>no install, no PATH changes</span></td><td class='sz'>~ 0.5 MB</td><td><div class='cardwrap'><a class='mini' href='downloads/york-x86_64-windows.zip'>Download</a></div></td></tr>
+<tr><td><b>york.exe</b></td><td>Single-file executable — download and run<span class='sub'>simplest possible start</span></td><td class='sz'>~ 1.3 MB</td><td><div class='cardwrap'><a class='mini' href='downloads/york.exe'>Download</a></div></td></tr>
+<tr><td>SHASUMS256.txt</td><td>Verified SHA-256 checksums for everything above<span class='sub'>pinned, no mirrors</span></td><td class='sz'>—</td><td><div class='cardwrap'><a class='mini' href='downloads/SHASUMS256.txt'>View</a></div></td></tr>
+</table>
+<div style='height:18px'></div>
+<p class='note'>Or pipe one line and let the installer take over:</p>
+<div class='cmdrow'><pre>irm https://raw.githubusercontent.com/TheRealClyp/York/main/installers/install.ps1 | iex</pre><button class='copy' type='button'>copy</button></div>
+<p class='note' style='margin-top:12px'>Installs to <code class='inline'>%LOCALAPPDATA%\Programs\york</code> and adds it to your PATH. 32-bit and ARM64 installers ship with the next release — the compiler already builds clean on both.</p>
+</div>
+<div class='pane' data-os='macos'>
+<h3>macOS — command is ready, binary on the way</h3>
+<p class='note'>Binary must be produced on a Mac — there is no way to build it from a Windows machine. The moment the universal build lands it appears right here, SHA-256 verified like everything else, and installs to <code class='inline'>~/.york/bin</code>.</p>
+<div class='cmdrow'><pre>curl -fsSL https://raw.githubusercontent.com/TheRealClyp/York/main/installers/install.sh | sh</pre><button class='copy' type='button'>copy</button></div>
+<p class='note' style='margin-top:12px'>The installer is ready — it is waiting on the binaries. <a class='mini' href='https://github.com/TheRealClyp/York/releases'>Watch releases</a></p>
+</div>
+<div class='pane' data-os='linux'>
+<h3>Linux — static binaries for x86_64 &amp; arm64</h3>
+<p class='note'>Fully static builds — zero glibc dependency — so they run on every Linux distro, musl and Alpine included. The one-line installer detects your architecture automatically.</p>
+<table class='dltable'>
+<tr><th>Artifact</th><th>Why you want it</th><th>Size</th><th></th></tr>
+<tr><td><b>york-x86_64-linux.tar.gz</b></td><td>Portable — extract and run <code class='inline'>bin/york</code><span class='sub'>static · no install, no PATH changes</span></td><td class='sz'>~ 0.6 MB</td><td><div class='cardwrap'><a class='mini' href='downloads/york-x86_64-linux.tar.gz'>Download</a></div></td></tr>
+<tr><td><b>york-aarch64-linux.tar.gz</b></td><td>ARM64 — Raspberry Pi 4/5, Ampere, Graviton<span class='sub'>static · same compiler, same everything</span></td><td class='sz'>~ 0.6 MB</td><td><div class='cardwrap'><a class='mini' href='downloads/york-aarch64-linux.tar.gz'>Download</a></div></td></tr>
+<tr><td><b>install.sh</b></td><td>One-line installer — auto-detects your arch &amp; OS<span class='sub'>curl • pipe • sh</span></td><td class='sz'>—</td><td><div class='cardwrap'><a class='mini' href='installers/install.sh'>View</a></div></td></tr>
+</table>
+<div style='height:18px'></div>
+<p class='note'>Or pipe one line and let the installer take over:</p>
+<div class='cmdrow'><pre>curl -fsSL https://raw.githubusercontent.com/TheRealClyp/York/main/installers/install.sh | sh</pre><button class='copy' type='button'>copy</button></div>
+<p class='note' style='margin-top:12px'>Installs to <code class='inline'>~/.york/bin</code> and adds it to your PATH. Building a program needs a C compiler (<code class='inline'>gcc</code>/<code class='inline'>clang</code>/<code class='inline'>cc</code>).</p>
+</div>
+<div class='pane' data-os='more'>
+<h3>Release notes</h3>
+<p class='note'>This distribution ships prebuilt binaries only — the compiler source is not part of the public release.</p>
+<table class='dltable'>
+<tr><th>Item</th><th>Notes</th><th>Size</th><th></th></tr>
+<tr><td><b>install.ps1</b></td><td>One-line installer used by the pipe commands above</td><td class='sz'>—</td><td><div class='cardwrap'><a class='mini' href='installers/install.ps1'>Open</a></div></td></tr>
+<tr><td><b>install.sh</b></td><td>Shell installer for macOS &amp; Linux — fully working with the x86_64 Linux build today</td><td class='sz'>—</td><td><div class='cardwrap'><a class='mini' href='installers/install.sh'>Open</a></div></td></tr>
+<tr><td><b>CHANGELOG.md</b></td><td>What changed in each York release</td><td class='sz'>—</td><td><div class='cardwrap'><a class='mini' href='CHANGELOG.md'>View</a></div></td></tr>
+<tr><td><b>GitHub Releases</b></td><td>Binaries, checksums, and release notes</td><td class='sz'>—</td><td><div class='cardwrap'><a class='mini' href='https://github.com/TheRealClyp/York/releases'>Open</a></div></td></tr>
+</table>
+</div>
+<p class='sha'>Every artifact is signed and verified against its <a href='downloads/SHASUMS256.txt'>SHA-256 checksums</a> — served directly from this site, no mirrors.</p>
+</section>
+<section id='cli'>
+<div class='eyebrow'>Cheat sheet</div>
+<h2>The whole CLI on one card</h2>
+<p class='desc'>Six commands cover the entire workflow.</p>
+<div class='grid'>
+<div class='card'>
+<h3><code class='inline mono'>york new NAME</code></h3>
+<p>Scaffold a fresh project with a starter main.yk.</p>
+</div>
+<div class='card'>
+<h3><code class='inline mono'>york build</code></h3>
+<p>Compile the current project to a native binary.</p>
+</div>
+<div class='card'>
+<h3><code class='inline mono'>york run FILE</code></h3>
+<p>Compile and run a York source file in one step.</p>
+</div>
+<div class='card'>
+<h3><code class='inline mono'>york dev</code></h3>
+<p>Watch your files and rebuild &amp; re-run on every save.</p>
+</div>
+<div class='card'>
+<h3><code class='inline mono'>york fmt</code></h3>
+<p>Format your code with the built-in formatter.</p>
+</div>
+<div class='card'>
+<h3><code class='inline mono'>york --version</code></h3>
+<p>Confirm which York you are running.</p>
+</div>
+</div>
+</section>
+<section id='faq' class='faq'>
+<div class='eyebrow'>FAQ</div>
+<h2>Questions, answered</h2>
+<details>
+<summary>Do I need anything else installed?</summary>
+<p>No. York ships as a prebuilt native binary — the installer just puts it on your PATH. Nothing else to install, nothing dangling.</p>
+</details>
+<details>
+<summary>How does York handle memory?</summary>
+<p>Arena memory with value semantics: data lives in fast stack-like arenas, you read copies, and mutation is explicit. No garbage collector, no ceremony.</p>
+</details>
+<details>
+<summary>Is York production-ready?</summary>
+<p>0.1.0 is early but real: structs, impls, enums with switch, arrays, and file I/O all compile fast to native code. More libraries are on the roadmap.</p>
+</details>
+<details>
+<summary>Can York run in the browser?</summary>
+<p>Soon. The browser backend is in progress, and it compiles the same York source you run natively.</p>
+</details>
+<details>
+<summary>How do I uninstall York?</summary>
+<p>Delete the install directory — %LOCALAPPDATA%\Programs\york on Windows, ~/.york on macOS and Linux — and remove the PATH entry the installer added. Two steps, done.</p>
+</details>
+<details>
+<summary>Is this website written in York?</summary>
+<p>Yes. This page is generated by a York program — the whole layout, every word, and the scripts. The generator lives in this site's repository.</p>
+</details>
+<details>
+<summary>Is York open source?</summary>
+<p>This distribution ships free, prebuilt binaries. The compiler source stays private.</p>
+</details>
+</section>
+<footer class='footer'>
+<div class='flinks'>
+<a href='#features'>Features</a>
+<a href='#code'>Code</a>
+<a href='#learn'>Learn</a>
+<a href='#quickstart'>Quickstart</a>
+<a href='#install'>Install</a>
+<a href='#cli'>CLI</a>
+<a href='#faq'>FAQ</a>
+<a href='https://github.com/TheRealClyp/York'>Binaries</a>
+</div>
+York 0.1.0 · bundle verified by <a href='downloads/SHASUMS256.txt'>SHA-256</a>.
+<div class='meta'>generated by York · this page is written in York</div>
+<div class='meta'><span class='made'>Made by @TheRealClyp</span></div>
+</footer>
+<button id='topbtn' type='button' aria-label='Back to top'>&uarr;</button>
+<script src='site.js'></script>
+</body>
+</html>
