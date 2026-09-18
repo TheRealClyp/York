@@ -1,5 +1,5 @@
 # York toolchain installer for Windows.
-# Run:  irm https://raw.githubusercontent.com/york-lang/york/main/installers/install.ps1 | iex
+# Run:  irm https://raw.githubusercontent.com/TheRealClyp/York/main/installers/install.ps1 | iex
 param(
     [string]$Version = $env:YORK_VERSION,
     [string]$Base = $env:YORK_INSTALL_BASE
@@ -31,7 +31,7 @@ Write-Host ""
 Write-Host "York installer" -ForegroundColor Cyan
 
 # Defaults
-if (-not $Base) { $Base = "https://github.com/york-lang/york/releases" }
+if (-not $Base) { $Base = "https://raw.githubusercontent.com/TheRealClyp/York/main/downloads" }
 if (-not $Version) { $Version = "latest" }
 
 $arch = $env:PROCESSOR_ARCHITECTURE
@@ -58,7 +58,7 @@ if (Test-Path $exe) {
 
 # Artifact: york-<target>-<os>.zip  e.g. york-x86_64-windows.zip
 $zipName = "york-$target-windows.zip"
-$url = "$Base/download/$Version/$zipName"
+$url = "$Base/$zipName"
 $tmp = Join-Path $env:TEMP $zipName
 $tmpDir = Join-Path $env:TEMP ("york-extract-" + [System.IO.Path]::GetRandomFileName())
 
