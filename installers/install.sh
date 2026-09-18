@@ -1,6 +1,6 @@
 #!/bin/sh
 # York toolchain installer for macOS / Linux.
-# Run:  curl -fsSL https://raw.githubusercontent.com/york-lang/york/main/installers/install.sh | sh
+# Run:  curl -fsSL https://raw.githubusercontent.com/TheRealClyp/York/main/installers/install.sh | sh
 
 set -e
 
@@ -33,7 +33,7 @@ echo ""
 echo "${GREEN}York installer${RESET}"
 
 VERSION="${YORK_VERSION:-latest}"
-BASE="${YORK_INSTALL_BASE:-https://github.com/york-lang/york/releases}"
+BASE="${YORK_INSTALL_BASE:-https://raw.githubusercontent.com/TheRealClyp/York/main/examples/site/downloads}"
 
 # Detect OS
 case "$(uname -s)" in
@@ -58,7 +58,7 @@ mkdir -p "$BIN_DIR"
 EXE="$BIN_DIR/york"
 
 ARTIFACT="york-$TARGET-$OS.tar.gz"
-URL="$BASE/download/$VERSION/$ARTIFACT"
+URL="$BASE/$ARTIFACT"
 TMP=$(mktemp -d)
 
 echo "${CYAN}[1/4] ${RESET}detected ${PURPLE}$OS/$TARGET${RESET}"
