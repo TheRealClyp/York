@@ -1,0 +1,29 @@
+// Lesson 2: variables and control flow.
+// York has int, float, bool, and String. Declare them with name, types, and values.
+public static void main(String[] args) {
+    int score = 10;
+    float hp = 95.5;
+    bool alive = true;
+    String name = "York";
+
+    score = score + 5;
+    hp = hp - 10.0;
+
+    println(name);
+
+    if (alive) {
+        println("alive and kicking");
+    }
+
+    for (int i = 0; i < 3; i++) {
+        if (i == 2) {
+            println("two");
+        } else {
+            println("still counting");
+        }
+    }
+
+    if (score > 10) {
+        println("score went past the goal");
+    }
+}

@@ -1,0 +1,23 @@
+// Lesson 3: writing your own functions.
+// A function declares its return type before the name. Use return to send back a value.
+float half(float value) {
+    return value / 2.0;
+}
+
+bool isBig(int value) {
+    if (value > 100) {
+        return true;
+    }
+    return false;
+}
+
+public static void main(String[] args) {
+    float h = half(80.0);
+    if (h > 0.0) {
+        println("half works");
+    }
+
+    if (isBig(200)) {
+        println("that number is big");
+    }
+}

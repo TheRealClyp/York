@@ -1,0 +1,28 @@
+// Lesson 4: enums and switch.
+// An enum lists the possible values a thing can be. Switch handles each one.
+enum Direction { North, South, East, West }
+
+public static void main(String[] args) {
+    Direction d = Direction.South;
+
+    switch (d) {
+        case Direction.North:
+            println("north");
+            break;
+        case Direction.South:
+            println("south");
+            break;
+        case Direction.East:
+            println("east");
+            break;
+        case Direction.West:
+            println("west");
+            break;
+        default:
+            println("unknown");
+    }
+
+    if (d == Direction.South) {
+        println("heading south");
+    }
+}

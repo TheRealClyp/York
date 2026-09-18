@@ -1,0 +1,7 @@
+# Make York the visible language of this repository once GitHub recognizes it.
+*.yk linguist-detectable=true
+
+# Tooling scripts and binaries stay out of the language mix.
+*.ps1 linguist-vendored
+*.sh linguist-vendored
+downloads/* linguist-vendored

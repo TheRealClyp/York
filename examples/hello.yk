@@ -1,0 +1,5 @@
+// Lesson 1: hello, york!
+// Every York program starts here. println prints a line of text.
+public static void main(String[] args) {
+    println("Hello, York!");
+}

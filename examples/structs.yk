@@ -1,0 +1,34 @@
+// Lesson 5: structs, impl blocks, and arenas.
+// A struct groups data. An impl block adds behaviors to a struct.
+struct Player {
+    float pos;
+    float hp;
+    bool active;
+}
+
+impl Player {
+    void damage(float amount) {
+        this.hp -= amount;
+        if (this.hp < 0.0) {
+            this.hp = 0.0;
+            this.active = false;
+        }
+    }
+
+    float getHp() {
+        return this.hp;
+    }
+}
+
+public static void main(String[] args) {
+    Arena<Player> players = new Arena(4);
+    players.push(Player { pos: 1.0, hp: 100.0, active: true });
+    players.push(Player { pos: 2.0, hp: 100.0, active: true });
+
+    for (Player p : players) {
+        p.damage(10.0);
+        if (p.getHp() > 0.0) {
+            println("player still standing");
+        }
+    }
+}

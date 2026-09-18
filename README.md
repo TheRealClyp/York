@@ -15,9 +15,8 @@ York is a small, fast systems language. Clean, familiar syntax that compiles to 
 single native binary — no runtime, no garbage collector.
 
 ```
-fn main() {
-    let name = "York";
-    printline("Hello, {}!", name);
+public static void main(String[] args) {
+    println("Hello, York!");
 }
 ```
 
@@ -65,9 +64,16 @@ york new hello
 york run .\hello\main.yk
 ```
 
+## Learn York
+
+New to programming, or just new to York? Work through the short lessons in
+[`examples/`](examples/) — hello, variables, functions, enums, and structs,
+each explaining its code line by line. Start with [`examples/README.md`](examples/README.md).
+
 ## Repository layout
 
 ```
+examples/     Learn York — five short, commented lessons
 downloads/    Official binaries + SHA-256 checksums
 installers/   One-line install scripts
 CHANGELOG.md  Release notes

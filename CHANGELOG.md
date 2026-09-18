@@ -8,8 +8,11 @@
 - `york.exe` — single-file executable, no install.
 
 ### Language
-- Lexer, parser, semantics, code generation, and CLI — a York program compiles to a single native binary through C.
-- Enums and `switch`, functions, variables, `if`/`loop`, `print` / `printline`.
+- Lexer, parser, semantics, code generation, and CLI — a York program compiles to a single native binary.
+- Enums and `switch`, functions, variables, `if`/`for`, `println`.
+
+### Examples
+- `examples/` — five short, commented lessons (hello, variables, functions, enums, structs) with a Learn York guide in `examples/README.md`.
 
 ### Infrastructure
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
