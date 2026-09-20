@@ -1,5 +1,25 @@
 ﻿# York Release Notes
 
+## 0.2.0 - 2026-09-20
+
+New math and system builtins, plus faster, cleaner builds.
+
+Added
+- Math: `sin()`, `cos()`, `tan()`, `ln()`, `log10()`, `exp()` â€” all resolve to C `math.h` functions and are inferred as floats.
+- System: `env("NAME")` reads an environment variable (empty string when unset), and `platform_name()` returns `windows`, `linux`, `macos`, `freebsd`, or `unknown` at runtime.
+
+Changed
+- Release cross-build now compiles both x86_64 and arm64 (aarch64) Linux binaries via musl-gcc / rust-lld, verified on-device under qemu before packaging.
+- Source tarballs and installers are re-staged each release; SHA-256 sums are generated for every artifact in `downloads` and `installers`.
+
+Fixed
+- WSL build sync now copies the complete `tools` workspace so release builds no longer fail to resolve workspace members.
+- Version number is now carried through every artifact, installer, and the website in one pass.
+
+Verified
+- Trig, log, env, and platform calls pass end-to-end tests (York source -> C -> native binary) on Windows and Linux.
+- Smoke suite passes identically on x86_64 Windows, x86_64 Linux, and aarch64 Linux (qemu).
+
 ## 0.1.1 â€” 2026-09-20
 
 York's first tagged GitHub release. Everything below is verified against `downloads/SHASUMS256.txt` (SHA-256) and covered by the Windows and Linux installers.
@@ -40,3 +60,4 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
