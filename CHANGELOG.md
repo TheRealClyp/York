@@ -1,5 +1,17 @@
 ﻿# York Release Notes
 
+## 0.2.2 - 2026-09-20
+
+Native Windows Desktop GUI release.
+
+Added
+- Native Win32 window creation, event polling, message loops, and controls (`window_create`, `window_show`, `control_button`, `control_label`, `control_set_text`, `message_box`).
+- Standalone `.exe` compilation entirely in York without external runtimes, HTML, JS, or Node.js.
+
+Verified
+- End-to-end Windows GUI example runs and responds to button clicks natively.
+- Full release pipeline packaged and deployed for v0.2.2 across Windows and Linux.
+
 ## 0.2.1 - 2026-09-20
 
 New randomness and string counting, following the 0.2.0 math/system batch.
@@ -78,5 +90,6 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
