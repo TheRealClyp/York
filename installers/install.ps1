@@ -41,6 +41,10 @@ $target = switch ($arch) {
     default  { throw "Unsupported architecture: $arch" }
 }
 
+if ($target -eq "aarch64") {
+    throw "York ARM64 Windows builds ship with the next release. Please use the x64 installer for now."
+}
+
 # Install location
 $ErrorActionPreference = "Stop"
 $InstallDir = Join-Path $env:LOCALAPPDATA "Programs\york"
