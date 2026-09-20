@@ -1,5 +1,23 @@
 ﻿# York Release Notes
 
+## 0.2.1 - 2026-09-20
+
+New randomness and string counting, following the 0.2.0 math/system batch.
+
+Added
+- `random_range(lo, hi)` â€” uniform integer in `[lo, hi)` using `srand()`-seeded C `rand()`, bias-corrected across the span.
+- `String.count(needle)` â€” count of non-overlapping occurrences (e.g. `"banana banana".count("banana")` is `2`). Empty needles return `0`.
+
+Changed
+- `String.count` joins `indexOf`/`lastIndexOf`/`rfind` as integer-returning string methods.
+
+Fixed
+- Nothing regressed in the language; the release re-stages every binary, installer, source tarball, and checksum from a single pass.
+
+Verified
+- `random_range` range invariant and `Str.count` semantics pass end-to-end tests on Windows and Linux.
+- Smoke suite passes identically on x86_64 Windows, x86_64 Linux, and aarch64 Linux (qemu).
+
 ## 0.2.0 - 2026-09-20
 
 New math and system builtins, plus faster, cleaner builds.
@@ -60,4 +78,5 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
