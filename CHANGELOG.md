@@ -1,5 +1,21 @@
 ﻿# York Release Notes
 
+## 0.2.3 - 2026-09-20
+
+Core compiler release with robust native Win32 GUI capabilities and clean project setup tooling.
+
+Added
+- Native Win32 window management, control creation (`control_button`, `control_label`, `control_textbox`), event polling, and message loops.
+- Automatic console suppression for GUI apps (`--windows-gui` and linker configurations).
+- Interactive `.yk` file selector and manifest discovery when running without explicit targets.
+
+Fixed
+- Resolved MSVC and GNU linker flags for Win32 GUI APIs (`user32.lib`, `gdi32.lib`, `shell32.lib`).
+- Cleaned up auxiliary project files to maintain a pristine programming language repository.
+
+Verified
+- End-to-end smoke test, native executable builds, version bump across all platforms, and full GitHub release deployment.
+
 ## 0.2.2 - 2026-09-20
 
 Native Windows Desktop GUI release.
@@ -90,6 +106,7 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
 
