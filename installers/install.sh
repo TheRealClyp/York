@@ -42,6 +42,11 @@ case "$(uname -s)" in
     *) echo "unsupported OS: $(uname -s)" >&2; exit 1 ;;
 esac
 
+if [ "$OS" = "macos" ]; then
+    echo "York macOS builds are on the way and will land in this exact spot." >&2
+    exit 1
+fi
+
 # Detect architecture
 ARCH="$(uname -m)"
 case "$ARCH" in
