@@ -1,0 +1,32 @@
+---
+title: York Programming Language v0.2.55
+description: Official documentation for York — a fast, native systems programming language with zero-fragmentation memory arenas, TCP networking, and native Win32 desktop GUI development.
+template: splash
+hero:
+  tagline: Compile straight to optimized native binaries with zero runtime bloat, real-time networking, and true native Windows desktop GUI capabilities.
+  actions:
+    - text: Get Started
+      link: /York/guides/installation/
+      icon: right-arrow
+      variant: primary
+    - text: GitHub Repository
+      link: https://github.com/TheRealClyp/York
+      icon: external
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid stagger>
+  <Card title="Lightning Fast Native Binaries" icon="rocket">
+    York compiles directly to clean C11, producing standalone executables via GCC, Clang, TCC, Zig, or MSVC.
+  </Card>
+  <Card title="Native Win32 Desktop GUI" icon="laptop">
+    Build real native desktop apps with windows, buttons, textboxes, and message dialogs without HTML or Node.js.
+  </Card>
+  <Card title="Zero-Fragmentation Arenas" icon="seti:db">
+    Manage memory efficiently using contiguous `Arena&lt;T&gt;` buffers with automatic resizing and instant clearing.
+  </Card>
+  <Card title="Real-Time TCP Networking" icon="seti:network">
+    Build high-performance TCP servers and clients using built-in `net_listen`, `net_accept`, and `net_recv` commands.
+  </Card>
+</CardGrid>
