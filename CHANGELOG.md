@@ -1,5 +1,19 @@
 ﻿# York Release Notes
 
+## 0.2.55 - 2026-09-21
+
+Massive new command suite release adding robust system inspection, file manipulation, and advanced string utilities.
+
+### Added
+- **OS & Hardware Inspection**: `os_cpu_count()`, `os_total_memory()`, `os_pid()`
+- **System & User Environment**: `sys_username()`, `sys_hostname()`, `sys_time_str()`
+- **Advanced File System Commands**: `fs_file_size(path)`, `fs_delete_file(path)`, `fs_copy_file(src, dst)`
+- **Powerful String Utilities**: `str_slugify(s)`, `str_capitalize(s)`, `str_base64_encode(s)`
+
+### Verified
+- Tested end-to-end via `examples/commands_test.yk` compiling and running successfully to native binaries.
+- Full release pipeline packaged, tagged (`v0.2.55`), and published to GitHub with all 11 binary/source assets and SHA-256 sums.
+
 ## 0.2.3 - 2026-09-20
 
 Core compiler release with robust native Win32 GUI capabilities and clean project setup tooling.
@@ -106,6 +120,7 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
 
