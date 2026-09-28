@@ -1,5 +1,16 @@
 ﻿# York Release Notes
 
+# York v0.3.3
+
+New built-ins:
+
+- `math_is_prime(int)` â€” `true` if the value is a prime number.
+- `math_gcd(a, b)` â€” greatest common divisor.
+- `math_lcm(a, b)` â€” least common multiple.
+- `str_levenshtein("a", "b")` â€” Levenshtein edit distance between two strings.
+
+Also includes everything from v0.3.0 (real multithreading), v0.3.1, and v0.3.2.
+
 # York v0.3.2
 
 New built-ins:
@@ -223,6 +234,7 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
 
