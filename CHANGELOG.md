@@ -1,5 +1,26 @@
 ﻿# York Release Notes
 
+# York v0.3.0 â€” Real Multithreading (BIG)
+
+This is a big one: York now has **real native threads**.
+
+## New built-ins
+
+- `thread_spawn("functionName", arg)` â€” starts a new OS thread that executes a user-defined function by name, passing the integer argument. Returns a thread id (`long`), or `-1` if the function can't be found/zthread creation fails.
+- `thread_join(id)` â€” waits for the thread to finish and releases its handle.
+- `thread_self()` â€” returns the id of the current thread.
+
+Any user function with a numeric first parameter (or no parameters) can be spawned as a thread.
+
+## Platforms
+
+- **Windows**: real threads via Win32 `CreateThread`, joined via `WaitForSingleObject`.
+- **Linux**: real threads via `pthread_create`, joined via `pthread_join` (static musl builds included).
+
+## Full v0.2.x feature set carried over
+
+`math_pi`, `math_e`, `str_repeat`, `str_word_count`, `degrees_to_radians`, `radians_to_degrees`, `log2`, `fract`, `str_trim_left`, `str_trim_right`, `str_is_alpha`, `str_is_digit`, `random_float`, `math_sign`, `str_first`, `str_last`, string methods, collections, networking, crypto, native GUI, and more.
+
 # York 0.2.9
 
 ## New Builtins
@@ -180,6 +201,7 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
 
