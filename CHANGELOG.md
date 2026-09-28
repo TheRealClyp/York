@@ -1,5 +1,32 @@
 ﻿# York Release Notes
 
+# York 0.3.6 â€” Mobile Apps: PWA + Android APK + iOS (`york mobile`)
+
+York apps now ship to phones. One York program produces an installable **PWA**, an **Android project**, a real **signed APK** compiled entirely by York's own toolchain (no Gradle, no Android Studio, no full SDK), and a complete **iOS Xcode project**.
+
+## New CLI
+- `york mobile <app.yk> --out build` â€” wraps a York program as an installable PWA.
+- `--platform android|ios|both` â€” choose which native shells to generate (default `both`).
+- `--apk` â€” compile a real signed `.apk` with York's own pipeline: `aapt2 â†’ javac â†’ d8 â†’ zipalign â†’ apksigner`. First build fetches ~120 MB of Google command-line compilers once into `~/.york/android`; everything else is offline and self-owned.
+- `york new-mobile NAME` â€” scaffold a mobile app project.
+
+## New `York.*` device runtime (Core 12)
+Every app automatically gets `window.York` with 12 features across three transports (Android bridge, iOS WKScriptMessageHandler, plain WebView/PWA fallback):
+- storage (key/value), toast, alert/confirm dialogs, vibration, geolocation, accelerometer (live `accel` events), battery, network type, clipboard read/write, native share sheet, open URL, and camera (front/back/pick).
+
+## Android
+- `YorkBridge.java` + `YorkCallable.java` â€” lambda-free runtime bridge, compiled with `javac --release 11` + D8 9.0.3.
+- New permissions: `INTERNET`, `ACCESS_NETWORK_STATE`, `VIBRATE`, `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`.
+- Signed APK verified with `apksigner` (v2 scheme passing) and zipaligned.
+
+## iOS
+- Full `YorkApp.xcodeproj` (single-target SwiftUI) with `YorkBridge.swift`, Info.plist location/motion/camera usage strings, adaptive launch background, and a bundled offline `www` folder.
+- Open it on a Mac â†’ Xcode â†’ Run.
+
+## Docs & site
+- README section 14: "Mobile Apps: PWA, Android APK & iOS (`york mobile`)" with the full `York.*` API table.
+- New `CHANGELOG.md`; site cheat-sheet updated (`york new-mobile`, `york mobile â€¦ --apk`).
+
 # York v0.3.5 â€” Mobile App Compatibility
 
 Mobile app making is now **really good**: better Android packaging, offline-first app shell, and a LAN preview server.
@@ -289,6 +316,7 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
 
