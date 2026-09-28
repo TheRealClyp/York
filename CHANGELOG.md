@@ -1,5 +1,37 @@
 ﻿# York Release Notes
 
+# York v0.3.4 â€” Make Mobile Apps
+
+The big one. You can now build **mobile apps** (and Android APKs) entirely in York.
+
+## New commands
+
+- `york new-mobile <name>` â€” scaffold a mobile app project.
+- `york mobile <file.yk> [--name "App Name"] [--out dir] [--icon icon.svg]` â€” build a mobile app.
+
+A small York program generates your whole UI (dark-mode mobile web UI, counter, interactive habits list â€” see the template), and `york mobile` packages the result into:
+
+- **An installable PWA** â€” `manifest.webmanifest`, offline service worker (`sw.js`), theme color, 192/512 icons. Tap "Add to Home Screen" on a phone.
+- **An Android shell** â€” a complete Gradle project with a WebView `MainActivity.java`, app icon, and theme that you open in Android Studio and press **Run** to get a real APK.
+- The web app itself is copied into the Android assets so the APK is fully offline.
+
+## Marked improvements
+
+- New CLI subcommand architecture (`Mobile`, `NewMobile`).
+- York mobile UI generator template with JS interactivity (counter, list add, bottom tab bar).
+- Output dir sanitized per build; custom icon support (`--icon`).
+- Everything from v0.3.0â€“v0.3.3 carried over (threads, math/string builtins).
+
+## Try it
+
+```
+york new-mobile myapp
+cd myapp
+york mobile src/app.yk --name "My App" --out build
+```
+
+Then open `build/android` in Android Studio and run, or host `build/` and install the PWA.
+
 # York v0.3.3
 
 New built-ins:
@@ -234,6 +266,7 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
 
