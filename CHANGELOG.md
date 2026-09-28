@@ -1,5 +1,20 @@
 ﻿# York Release Notes
 
+# York 0.2.7
+
+## New Builtins
+
+- `degrees_to_radians(x)` â€” converts degrees to radians.
+- `radians_to_degrees(x)` â€” converts radians to degrees.
+- `log2(x)` â€” base-2 logarithm.
+- `fract(x)` â€” fractional part of a float (positive for negatives: `fract(-1.25) == -0.25`).
+
+## Notes
+
+- Windows x64, Linux x86_64, and Linux aarch64 binaries available.
+- Windows installer (york-setup-x64.exe) included.
+- SHA-256 checksums verified for every artifact.
+
 # York 0.2.6
 
 ## New Builtins
@@ -135,6 +150,7 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
 
