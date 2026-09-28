@@ -1,5 +1,20 @@
 ﻿# York Release Notes
 
+# York 0.2.6
+
+## New Builtins
+
+- `math_pi()` â€” returns the constant Ï€ (3.14159â€¦) as a float.
+- `math_e()` â€” returns Euler's number e (2.71828â€¦) as a float.
+- `str_repeat(s, n)` â€” repeats a string `n` times and returns the result.
+- `str_word_count(s)` â€” counts whitespace-separated words in a string.
+
+## Notes
+
+- Windows x64, Linux x86_64, and Linux aarch64 binaries available.
+- Windows installer (york-setup-x64.exe) included.
+- SHA-256 checksums verified for every artifact.
+
 ## 0.2.55 - 2026-09-21
 
 Massive new command suite release adding robust system inspection, file manipulation, and advanced string utilities.
@@ -120,6 +135,7 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
 
