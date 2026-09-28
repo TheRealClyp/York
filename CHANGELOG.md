@@ -1,5 +1,20 @@
 ﻿# York Release Notes
 
+# York 0.2.9
+
+## New Builtins
+
+- `random_float()` â€” returns a random float in [0, 1).
+- `math_sign(x)` â€” returns 1.0, 0.0, or -1.0 based on the sign of x.
+- `str_first(s)` â€” first character as a string.
+- `str_last(s)` â€” last character as a string.
+
+## Notes
+
+- Windows x64, Linux x86_64, and Linux aarch64 binaries available.
+- Windows installer (york-setup-x64.exe) included.
+- SHA-256 checksums verified for every artifact.
+
 # York 0.2.8
 
 ## New Builtins
@@ -165,6 +180,7 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
 
