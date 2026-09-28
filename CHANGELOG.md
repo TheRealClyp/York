@@ -1,5 +1,16 @@
 ﻿# York Release Notes
 
+# York v0.3.2
+
+New built-ins:
+
+- `math_lerp(a, b, t)` â€” linear interpolation between `a` and `b` at factor `t`.
+- `str_is_lower("...")` â€” `true` if the string contains at least one letter and no uppercase letters.
+- `str_is_upper("...")` â€” `true` if the string contains at least one letter and no lowercase letters.
+- `str_rev_words("word1 word2 ...")` â€” returns the words in reverse order ("a b c" -> "c b a").
+
+Also includes everything from v0.3.0 (real multithreading) and v0.3.1.
+
 # York v0.3.1
 
 New built-ins:
@@ -212,6 +223,7 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
 
