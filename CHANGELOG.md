@@ -1,5 +1,20 @@
 ﻿# York Release Notes
 
+# York 0.2.8
+
+## New Builtins
+
+- `str_trim_left(s)` â€” strips leading whitespace.
+- `str_trim_right(s)` â€” strips trailing whitespace.
+- `str_is_alpha(s)` â€” true if every char is a letter.
+- `str_is_digit(s)` â€” true if every char is a digit.
+
+## Notes
+
+- Windows x64, Linux x86_64, and Linux aarch64 binaries available.
+- Windows installer (york-setup-x64.exe) included.
+- SHA-256 checksums verified for every artifact.
+
 # York 0.2.7
 
 ## New Builtins
@@ -150,6 +165,7 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
 
