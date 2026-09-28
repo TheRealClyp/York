@@ -1,5 +1,16 @@
 ﻿# York Release Notes
 
+# York v0.3.1
+
+New built-ins:
+
+- `math_is_even(int)` â€” `true` if the value is even.
+- `math_is_odd(int)` â€” `true` if the value is odd.
+- `str_is_numeric("...")` â€” `true` if the string contains only digits (and is non-empty).
+- `str_is_alnum("...")` â€” `true` if the string contains only letters and digits (and is non-empty).
+
+Also includes everything from v0.3.0: real multithreading (`thread_spawn`, `thread_join`, `thread_self`) plus the full v0.2.x built-in set.
+
 # York v0.3.0 â€” Real Multithreading (BIG)
 
 This is a big one: York now has **real native threads**.
@@ -201,6 +212,7 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
 
