@@ -1,5 +1,28 @@
 ﻿# York Release Notes
 
+# York v0.3.5 â€” Mobile App Compatibility
+
+Mobile app making is now **really good**: better Android packaging, offline-first app shell, and a LAN preview server.
+
+## What's better for mobile
+
+- **Real Android launcher icons** â€” the generated APK now ships adaptive icons (VectorDrawable: foreground Y glyph + dark background) plus a legacy fallback, so it looks right on all Android versions instead of a broken SVG.
+- **Native splash + theming** â€” dark startup screen, status/navigation bar colors, hardware-accelerated WebView.
+- **Better WebView wrapper** â€” graceful JS alerts (toast), immersive fullscreen UI on Android 11+, correct back navigation, `onDestroy` cleanup.
+- **Versioned offline service worker** â€” old caches are pruned, new builds activate instantly (`skipWaiting` + `clients.claim`).
+- **`york mobile --serve`** â€” after building, serves the web app over the LAN (port 8787) and prints your machine's IPv4 addresses, so you can preview the PWA on a real phone on the same Wi-Fi.
+- `app_name` wired into the Android manifest via `strings.xml`; richer mobile starter template (v0.3.5).
+
+## Commands
+
+```
+york new-mobile myapp
+york mobile src/app.yk --name "My App" --out build
+york mobile src/app.yk --serve          # preview on your phone via LAN
+```
+
+Open `build/android` in Android Studio and press Run, or host `build/` to install as a PWA. Everything from v0.3.0â€“v0.3.4 carries over.
+
 # York v0.3.4 â€” Make Mobile Apps
 
 The big one. You can now build **mobile apps** (and Android APKs) entirely in York.
@@ -266,6 +289,7 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
 
