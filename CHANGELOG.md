@@ -1,5 +1,28 @@
 ﻿# York Release Notes
 
+# York 0.4.0 â€” One Source, Every Target
+
+**Major release.** The complete mobile framework is now the centerpiece of York, and the README is rewritten as an exhaustive technical specification and reference manual.
+
+## Mobile (headline)
+- **`york mobile`** â€” one York program â†’ installable PWA + Android project + **real signed APK** (York's own `aapt2 â†’ javac â†’ d8 â†’ zipalign â†’ apksigner` toolchain; no Gradle, no Android Studio, no full SDK; one-time ~120 MB toolchain fetch into `~/.york/android`) + complete **iOS Xcode project**.
+- **Core 12 `York.*` runtime** â€” storage, toast, alert/confirm dialogs, vibration, geolocation, accelerometer, battery, network type, clipboard read/write, share sheet, open URL, camera. Three transports (Android `YorkBridge.java`, iOS `YorkBridge.swift`/`WKScriptMessageHandler`, pure-web fallbacks), one API on every platform.
+- `york mobile --platform android|ios|both` (default `both`, aliases `apple`/`all`), `--apk`, `--icon`, `--serve`, `--name`, `--out`.
+- `york new-mobile NAME` â€” scaffolds a mobile app with a demo template that exercises the runtime.
+
+## Language surface
+- Sized primitive types `i8`â€“`i128`, `u8`â€“`u128`, `f16`â€“`f64` (plus `bool`/`char`/`String`/`void`).
+- `packed` structs, slices `T[]`, foreach (`for (x : iterable)`), `arena[i]` indexing, if-as-expression, implicit `break` after `switch` arms (no fallthrough).
+- Networking: `net_listen`, `net_accept`, `net_connect`, `net_send`, `net_recv`, `net_close` (Winsock/BSD).
+- Threads: `thread_spawn("fn", arg)`, `thread_join`, `thread_self` (pthread/`CreateThread`).
+- Full built-in library: math, strings, files, OS/system, binary (`bin_pack`), hashing (`crypto_hash`).
+- Chainable String methods with camelCase + snake_case aliases.
+
+## Docs
+- **README rewritten** â€” complete technical spec & reference manual for v0.4.0: architecture, pipeline, grammar, type system, `Arena<T>`, control flow, structs/impl/enums, complete built-in function reference, string methods, file/OS, networking, threads, Win32 GUI, CLI workflow, the mobile framework (`York.*` Core 12 API reference), cross-compilation, and an honest "Limits & Not-Yet-Supported" section.
+- Site cheat-sheet updated (`york new-mobile`, `york mobile â€¦ --apk`).
+- New CHANGELOG structure tracking the full release line.
+
 # York 0.3.6 â€” Mobile Apps: PWA + Android APK + iOS (`york mobile`)
 
 York apps now ship to phones. One York program produces an installable **PWA**, an **Android project**, a real **signed APK** compiled entirely by York's own toolchain (no Gradle, no Android Studio, no full SDK), and a complete **iOS Xcode project**.
@@ -316,6 +339,7 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
 
