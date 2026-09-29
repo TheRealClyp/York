@@ -1,0 +1,15 @@
+[package]
+name = "york_web"
+description = "York web bundler — dev server and production builds for Wasm web apps"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "york-web"
+path = "src/main.rs"
+
+[dependencies]
+york_compiler = { workspace = true }
+clap = { workspace = true }
+colored = { workspace = true }
+anyhow = { workspace = true }

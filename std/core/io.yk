@@ -1,0 +1,26 @@
+// York Standard Library - std/core/io.yk
+// Core input/output functions
+
+bool fileExists(String path) {
+    return file_exists(path);
+}
+
+String readFile(String path) {
+    return read_file(path);
+}
+
+bool writeFile(String path, String content) {
+    return write_file(path, content);
+}
+
+bool appendFile(String path, String content) {
+    return append_file(path, content);
+}
+
+int execCommand(String cmd) {
+    return exec(cmd);
+}
+
+void exitProgram(int code) {
+    exit(code);
+}

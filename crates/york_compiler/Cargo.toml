@@ -1,0 +1,15 @@
+[package]
+name = "york_compiler"
+description = "York compiler pipeline driver — orchestrates lexing, parsing, analysis, and codegen"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+york_ast = { workspace = true }
+york_lexer = { workspace = true }
+york_parser = { workspace = true }
+york_sema = { workspace = true }
+york_ir = { workspace = true }
+york_codegen_c = { workspace = true }
+york_codegen_wasm = { workspace = true }
+anyhow = { workspace = true }

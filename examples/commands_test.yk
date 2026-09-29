@@ -1,0 +1,25 @@
+public static void main(String[] args) {
+    println("York v0.2.55 Command Suite Test");
+
+    // OS & System Info
+    println("CPU Cores: " + to_string(os_cpu_count()));
+    println("Total RAM: " + to_string(os_total_memory()));
+    println("Process PID: " + to_string(os_pid()));
+    println("Username: " + sys_username());
+    println("Hostname: " + sys_hostname());
+    println("Current Time: " + sys_time_str());
+
+    // String Utilities
+    println("Slugified: " + str_slugify("York Programming Language 2026!"));
+    println("Capitalized: " + str_capitalize("hello world"));
+    println("Base64/Hex Encoded: " + str_base64_encode("secret-token"));
+
+    // File Operations
+    write_file("test.txt", "York systems engine data content.");
+    println("File size: " + to_string(fs_file_size("test.txt")));
+    fs_copy_file("test.txt", "copy.txt");
+    println("Copy exists: " + to_string(file_exists("copy.txt")));
+    fs_delete_file("test.txt");
+    fs_delete_file("copy.txt");
+    println("All system commands verified successfully.");
+}

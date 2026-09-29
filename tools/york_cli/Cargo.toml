@@ -1,0 +1,22 @@
+[package]
+name = "york_cli"
+description = "York language CLI — build, run, test, format, and manage York projects"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "york"
+path = "src/main.rs"
+
+[dependencies]
+york_lexer = { workspace = true }
+york_parser = { workspace = true }
+york_sema = { workspace = true }
+york_codegen_c = { workspace = true }
+clap = { workspace = true }
+colored = { workspace = true }
+anyhow = { workspace = true }
+notify = { workspace = true }
+
+[build-dependencies]
+embed-resource = "2"

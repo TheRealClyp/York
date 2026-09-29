@@ -1,0 +1,9 @@
+[package]
+name = "york_lexer"
+description = "Fast lexer/tokenizer for the York programming language"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+york_ast = { workspace = true }
+thiserror = { workspace = true }

@@ -1,0 +1,18 @@
+public static void main(String[] args) {
+    long win = window_create("York Native Windows Desktop", 640, 480);
+    window_show(win);
+    
+    long btn = control_button(win, "Click Me!", 50, 50, 120, 35, 1001);
+    long lbl = control_label(win, "Welcome to York Windows UI", 50, 110, 300, 25, 1002);
+
+    message_box("York GUI", "Native Windows Window Initialized!");
+
+    while (window_is_open(win)) {
+        window_poll_events(win);
+        long cmd = window_last_command();
+        if (cmd == 1001) {
+            control_set_text(lbl, "Button Clicked!");
+        }
+        sleep_ms(15);
+    }
+}

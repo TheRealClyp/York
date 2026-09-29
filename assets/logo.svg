@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="65%">
+      <stop offset="0%" stop-color="#14213d" stop-opacity="0.8"/>
+      <stop offset="60%" stop-color="#0b101d" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#060911" stop-opacity="1"/>
+    </radialGradient>
+
+    <!-- Outer Border Cyberpunk Gradient -->
+    <linearGradient id="cyberBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f5ff"/>
+      <stop offset="30%" stop-color="#38bdf8"/>
+      <stop offset="70%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+
+    <!-- Core Brand Cyan Gradient -->
+    <linearGradient id="neonCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#67e8f9"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <!-- Core Brand Violet Gradient -->
+    <linearGradient id="neonViolet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e879f9"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+
+    <!-- Stem Gradient -->
+    <linearGradient id="neonStem" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+
+    <!-- Inner Shield Glow Filter -->
+    <filter id="shieldShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#00f5ff" flood-opacity="0.25"/>
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#7c3aed" flood-opacity="0.35"/>
+    </filter>
+
+    <filter id="bloom" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Hexagonal Shield Outer Hull -->
+  <polygon points="256,28 464,148 464,388 256,508 48,388 48,148"
+           fill="url(#bgGlow)"
+           stroke="url(#cyberBorder)"
+           stroke-width="14"
+           stroke-linejoin="round"
+           filter="url(#shieldShadow)"/>
+
+  <!-- High-Tech Circuit / Grid Inset -->
+  <polygon points="256,52 440,160 440,372 256,480 72,372 72,160"
+           fill="none"
+           stroke="#1e293b"
+           stroke-width="2"
+           stroke-dasharray="8 6"/>
+
+  <polygon points="256,76 416,172 416,356 256,452 96,356 96,172"
+           fill="none"
+           stroke="#0e1726"
+           stroke-width="1.5"/>
+
+  <!-- Geometric Y Architecture: Left Blade (Cyan) -->
+  <path d="M 128,144 L 212,144 L 256,238 L 222,258 L 128,144 Z"
+        fill="url(#neonCyan)"
+        filter="url(#bloom)"/>
+
+  <!-- Geometric Y Architecture: Right Blade (Violet) -->
+  <path d="M 384,144 L 300,144 L 256,238 L 290,258 L 384,144 Z"
+        fill="url(#neonViolet)"
+        filter="url(#bloom)"/>
+
+  <!-- Geometric Y Architecture: Central Stem -->
+  <path d="M 238,252 L 274,252 L 274,384 L 256,402 L 238,384 Z"
+        fill="url(#neonStem)"
+        filter="url(#bloom)"/>
+
+  <!-- Core Fusion Vertex / Dynamic Energy Spark -->
+  <circle cx="256" cy="246" r="28" fill="#060911" stroke="url(#cyberBorder)" stroke-width="4"/>
+  <circle cx="256" cy="246" r="16" fill="url(#neonCyan)"/>
+  <circle cx="256" cy="246" r="8" fill="#ffffff" filter="url(#bloom)"/>
+
+  <!-- Systems Language Vertex Nodes -->
+  <circle cx="128" cy="144" r="8" fill="#00f5ff"/>
+  <circle cx="128" cy="144" r="4" fill="#ffffff"/>
+  <circle cx="384" cy="144" r="8" fill="#c084fc"/>
+  <circle cx="384" cy="144" r="4" fill="#ffffff"/>
+  <circle cx="256" cy="402" r="7" fill="#818cf8"/>
+  <circle cx="256" cy="402" r="3" fill="#ffffff"/>
+
+  <!-- Tech Accent Data Bits -->
+  <line x1="72" y1="266" x2="108" y2="266" stroke="#00f5ff" stroke-width="3" opacity="0.7"/>
+  <line x1="404" y1="266" x2="440" y2="266" stroke="#c084fc" stroke-width="3" opacity="0.7"/>
+  <circle cx="114" cy="266" r="3" fill="#00f5ff"/>
+  <circle cx="398" cy="266" r="3" fill="#c084fc"/>
+</svg>

@@ -1,0 +1,9 @@
+[package]
+name = "york_codegen_wasm"
+description = "WebAssembly binary code generation backend for the York compiler"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+york_ast = { workspace = true }
+york_ir = { workspace = true }

@@ -1,0 +1,8 @@
+[package]
+name = "york_ast"
+description = "York language AST, tokens, and span definitions"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde = { workspace = true, optional = true }

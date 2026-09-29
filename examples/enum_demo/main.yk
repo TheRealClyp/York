@@ -1,0 +1,44 @@
+// Demo: enums and switch statements in York.
+enum Color { Red, Green, Blue }
+
+public static void main(String[] args) {
+    Color c = Color.Red;
+
+    switch (c) {
+        case Color.Red:
+            println("red");
+            break;
+        case Color.Green:
+            println("green");
+            break;
+        case Color.Blue:
+            println("blue");
+            break;
+        default:
+            println("unknown");
+    }
+
+    c = Color.Blue;
+    if (c == Color.Blue) {
+        println("c is blue");
+    } else {
+        println("c is not blue");
+    }
+
+    Color d = Color.Green;
+    if (d == Color.Green) {
+        println("d is green");
+    }
+
+    int n = 2;
+    switch (n) {
+        case 1:
+            println("one");
+            break;
+        case 2:
+            println("two");
+            break;
+        default:
+            println("many");
+    }
+}

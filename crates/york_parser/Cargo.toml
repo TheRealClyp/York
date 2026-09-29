@@ -1,0 +1,10 @@
+[package]
+name = "york_parser"
+description = "Recursive descent parser for the York programming language"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+york_ast = { workspace = true }
+york_lexer = { workspace = true }
+thiserror = { workspace = true }

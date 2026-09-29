@@ -1,0 +1,18 @@
+# Do NOT place this file in TheRealClyp/York — it belongs in the Linguist repo as a PR.
+#
+# Add this entry to: https://github.com/github-linguist/linguist/blob/main/lib/linguist/languages.yml
+# (The file lists languages alphabetically. Insert under "Yahoo Query Language ... York").
+# Also add the grammar at: grammars/source.york.tmLanguage.json (same repo).
+
+York:
+  type: programming
+  tm_scope: source.york
+  ace_mode: text
+  color: "#67e8f9"
+  extensions:
+  - ".yk"
+  aliases:
+  - yorklang
+  language_id: 1379701106
+# language_id was assigned randomly and checked for collision against languages.yml
+# (614078284 was already taken by xonsh -> PR #8210 fix commit fd3e4e4).

@@ -1,0 +1,20 @@
+public static void main(String[] args) {
+    println("Starting York Real-Time Echo Server on port 8080...");
+    long server = net_listen(8080);
+    if (server < 0) {
+        println("Failed to bind port 8080");
+        return;
+    }
+    println("Server listening. Waiting for client connections...");
+    
+    while (true) {
+        long client = net_accept(server);
+        if (client >= 0) {
+            println("Client connected!");
+            String msg = net_recv(client);
+            println("Received: " + msg);
+            net_send(client, "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello from York!");
+            net_close(client);
+        }
+    }
+}

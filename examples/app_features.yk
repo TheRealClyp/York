@@ -1,0 +1,12 @@
+public static void main(String[] args) {
+    println("Initializing York Database & JSON Engine...");
+    long db = db_open("notes.db");
+    db_exec(db, "INSERT INTO notes(title, body) VALUES('York 0.2.3', 'Native systems programming');");
+    
+    String res = db_query(db, "SELECT * FROM notes;");
+    println("DB Query Result: " + res);
+
+    String json = "{\"user\": \"clyp\", \"id\": 9923, \"active\": true}";
+    println("Parsed JSON user: " + json_get(json, "user"));
+    println("Parsed JSON id: " + json_get(json, "id"));
+}

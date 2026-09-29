@@ -1,0 +1,21 @@
+// York Standard Library - std/mem/arena.yk
+// Documentation & guidelines for York native Arena allocations.
+//
+// Arena<T> is York's zero-fragmentation, contiguous memory buffer.
+// Built-in methods available on any Arena<T>:
+//   .push(item)       - append element, auto-growing buffer if needed
+//   .get(index)       - fetch element at index
+//   .set(index, item) - overwrite element at index
+//   .pop()            - remove and return the last element
+//   .last()           - peek at the last element
+//   .clear()          - reset count to 0 without reallocating
+//   .count()          - current number of elements
+//   .is_empty()       - true if count == 0
+//
+// Example:
+//   Arena<int> nums = new Arena(16);
+//   nums.push(42);
+//   nums.set(0, 100);
+//   int val = nums.get(0);
+//   int popped = nums.pop();
+//   bool empty = nums.is_empty();

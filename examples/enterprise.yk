@@ -1,0 +1,23 @@
+public static void main(String[] args) {
+    println("York High-Performance Engine v0.2.5");
+    
+    // 1. Fast Binary Serialization (.ybin)
+    long bytes = bin_pack("user.ybin", "ID:4920,Role:Admin,Token:XYZ789");
+    println("Packed bytes to .ybin: " + to_string(bytes));
+
+    // 2. Cryptographic Hashing
+    String hash = crypto_hash("YorkSystemsProgramming2026");
+    println("Secure Hash Check: " + hash);
+
+    // 3. High-Performance TCP Socket Networking
+    long server = net_listen(9000);
+    println("Network Listener active on port 9000 (socket handle: " + to_string(server) + ")");
+    net_close(server);
+
+    // 4. Native Desktop Window
+    long win = window_create("York v0.2.5 Enterprise", 640, 480);
+    long btn = control_button(win, "Execute Task", 50, 50, 150, 40, 101);
+    window_show(win);
+    message_box("York v0.2.5", "Enterprise Engine initialized successfully!");
+    window_close(win);
+}

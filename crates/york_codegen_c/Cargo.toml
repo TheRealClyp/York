@@ -1,0 +1,14 @@
+[package]
+name = "york_codegen_c"
+description = "C transpilation backend for the York compiler"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+york_ast = { workspace = true }
+york_ir = { workspace = true }
+
+[dev-dependencies]
+york_lexer = { workspace = true }
+york_parser = { workspace = true }
+york_sema = { workspace = true }

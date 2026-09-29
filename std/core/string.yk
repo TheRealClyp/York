@@ -1,0 +1,22 @@
+// York Standard Library - std/core/string.yk
+// Core string helpers and type conversions
+
+int stringLength(String s) {
+    return str_len(s);
+}
+
+bool stringEquals(String a, String b) {
+    return a == b;
+}
+
+String intToString(int v) {
+    return to_string(v);
+}
+
+String floatToString(float v) {
+    return to_string(v);
+}
+
+String boolToString(bool v) {
+    return to_string(v);
+}

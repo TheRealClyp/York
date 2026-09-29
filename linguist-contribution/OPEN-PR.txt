@@ -1,0 +1,37 @@
+HOW TO GET "York" INTO GITHUB'S LANGUAGE BAR  (do this once, needs your login)
+==============================================================================
+GitHub's language bar only lists languages it knows about. "York" is not known
+yet, so  .yk  files cannot be labeled York - no setting in your repo can fake it.
+
+Fix it upstream with one pull request to Linguist. Files you need are in this
+folder:  languages.yml.york  and  grammars/source.york.tmLanguage.json
+
+STEPS (all in the web browser, no tools needed):
+1. Open:
+   https://github.com/github-linguist/linguist/blob/main/lib/linguist/languages.yml
+2. Click the pencil (Fork-and-edit). GitHub forks linguist under your account
+   and gives you an editor.
+3. Scroll to the "Y" section and insert the York block from languages.yml.york
+   (close to the Yoke / Yorick entries, where the list is alphabetical).
+4. Commit it to a NEW BRANCH (name it  add-york-language ).
+5. On the same branch add the grammar file:
+   https://github.com/github-linguist/linguist/tree/main/grammars
+   -> "Add file" -> upload grammars/source.york.tmLanguage.json (from this folder).
+6. Open a Pull Request. Suggested title + body:
+
+   Title:   Add York language (source.york)
+   Body:    York is a small, fast systems language. It compiles to a single
+            native binary. Public samples live in https://github.com/TheRealClyp/York
+            under examples/ (barring .yk files). Resolves: request for York
+            recognition so TheRealClyp/York shows York in its language bar.
+
+7. Press "Create pull request".
+
+THEN: watch the PR. Sometimes maintainers ask for tweaks or to pick a
+language_id (an unused integer). After the PR merges, GitHub re-detects
+languages on the default branch within a short while and TheRealClyp/York will
+show: York.
+
+NOTE: your .gitattributes (already in the repo) does *.yk linguist-detectable=true
+and hides the PowerShell/Shell/downloads files from the stats, so once York is
+recognized the bar shows essentially 100% York.

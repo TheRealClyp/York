@@ -1,0 +1,46 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/york_ast",
+    "crates/york_lexer",
+    "crates/york_parser",
+    "crates/york_sema",
+    "crates/york_ir",
+    "crates/york_codegen_c",
+    "crates/york_codegen_wasm",
+    "crates/york_compiler",
+    "tools/york_cli",
+    "tools/york_pkg",
+    "tools/york_web",
+    "tools/york_setup",
+]
+
+[workspace.package]
+version = "0.5.0"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/york-lang/york"
+
+[workspace.dependencies]
+york_ast = { path = "crates/york_ast" }
+york_lexer = { path = "crates/york_lexer" }
+york_parser = { path = "crates/york_parser" }
+york_sema = { path = "crates/york_sema" }
+york_ir = { path = "crates/york_ir" }
+york_codegen_c = { path = "crates/york_codegen_c" }
+york_codegen_wasm = { path = "crates/york_codegen_wasm" }
+york_compiler = { path = "crates/york_compiler" }
+
+anyhow = "1"
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+clap = { version = "4", features = ["derive"] }
+colored = "2"
+rayon = "1"
+notify = "7"
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true

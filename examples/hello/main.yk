@@ -1,0 +1,36 @@
+struct Player {
+    float pos;
+    float hp;
+    bool active;
+}
+
+impl Player {
+    void damage(float amount) {
+        this.hp -= amount;
+        if (this.hp < 0.0) {
+            this.hp = 0.0;
+            this.active = false;
+        }
+    }
+
+    float getHp() {
+        return this.hp;
+    }
+}
+
+public static void main(String[] args) {
+    Arena<Player> players = new Arena(4);
+    players.push(Player { pos: 1.0, hp: 100.0, active: true });
+    players.push(Player { pos: 2.0, hp: 100.0, active: true });
+    players.push(Player { pos: 3.0, hp: 100.0, active: true });
+
+    println(players.count());
+    for (Player p : players) {
+        p.damage(10.0);
+        println(p.hp);
+    }
+
+    for (int i = 0; i < players.count(); i++) {
+        println(players.get(i).hp);
+    }
+}

@@ -1,0 +1,48 @@
+// York Standard Library - std/core/math.yk
+// Basic mathematical helpers and constants
+
+float PI = 3.141592653589793;
+float TAU = 6.283185307179586;
+float E = 2.718281828459045;
+
+float clamp(float v, float minVal, float maxVal) {
+    if (v < minVal) {
+        return minVal;
+    }
+    if (v > maxVal) {
+        return maxVal;
+    }
+    return v;
+}
+
+int clampInt(int v, int minVal, int maxVal) {
+    if (v < minVal) {
+        return minVal;
+    }
+    if (v > maxVal) {
+        return maxVal;
+    }
+    return v;
+}
+
+float lerp(float a, float b, float t) {
+    return a + (b - a) * t;
+}
+
+float degToRad(float deg) {
+    return deg * (PI / 180.0);
+}
+
+float radToDeg(float rad) {
+    return rad * (180.0 / PI);
+}
+
+float sign(float v) {
+    if (v > 0.0) {
+        return 1.0;
+    }
+    if (v < 0.0) {
+        return -1.0;
+    }
+    return 0.0;
+}

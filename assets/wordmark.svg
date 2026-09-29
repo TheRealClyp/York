@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="320" height="80">
+  <defs>
+    <linearGradient id="yGlow2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#67e8f9"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+  </defs>
+  <g stroke="url(#yGlow2)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M20 18 L40 42 L60 18"/>
+    <path d="M30 50 L40 62 L50 50" opacity="0.85"/>
+  </g>
+  <text x="76" y="50" font-family="'Segoe UI', system-ui, sans-serif" font-size="40" font-weight="700" fill="#e6edf3">York</text>
+  <text x="76" y="68" font-family="'Segoe UI', system-ui, sans-serif" font-size="12" font-weight="500" letter-spacing="4" fill="#67e8f9">A FAST, FRIENDLY SYSTEMS LANGUAGE</text>
+</svg>

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<title>York — a fast, friendly systems language</title>
+<link rel='icon' href='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%230d1b2e%22/><text x=%2250%22 y=%2268%22 font-size=%2260%22 text-anchor=%22middle%22 fill=%22%2367e8f9%22 font-family=%22monospace%22>Y</text></svg>'>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0b0f1a; color: #e6edf3; line-height: 1.6; }
+a { color: #67e8f9; text-decoration: none; }
+a:hover { text-decoration: underline; }
+.nav { position: sticky; top: 0; display: flex; align-items: center; gap: 22px; padding: 14px 40px; background: rgba(11,15,26,.9); backdrop-filter: blur(10px); border-bottom: 1px solid #1d2a3a; z-index: 10; flex-wrap: wrap; }
+.nav .logo { font-weight: 700; font-size: 1.3rem; letter-spacing: .5px; }
+.nav .logo span { color: #67e8f9; }
+.nav a { color: #8aa0b8; font-size: .95rem; }
+.nav .navver { border: 1px solid #2d3d52; border-radius: 999px; padding: 2px 10px; font-size: .75rem; color: #67e8f9; }
+.nav .spacer { flex: 1; }
+.nav .cta { background: #155e75; color: white !important; padding: 8px 18px; border-radius: 8px; font-weight: 600; }
+.nav .cta:hover { background: #0e7490; text-decoration: none; }
+.hero { padding: 110px 40px 70px; text-align: center; background: radial-gradient(1200px 500px at 50% -100px, #122a41 0%, transparent 70%); }
+.hero h1 { font-size: 4rem; font-weight: 800; letter-spacing: -1px; }
+.hero h1 span { background: linear-gradient(90deg, #67e8f9, #a78bfa); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero p.lead { font-size: 1.35rem; color: #a9b7c6; max-width: 640px; margin: 22px auto 30px; }
+.chips { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 34px; }
+.chip { border: 1px solid #2d3d52; background: #101a2c; color: #c9d6e3; padding: 8px 16px; border-radius: 999px; font-size: .85rem; }
+.chip b { color: #67e8f9; font-weight: 700; }
+.chip .tag { background: #155e75; color: #fff; border-radius: 999px; padding: 2px 9px; margin-left: 6px; font-size: .72rem; font-weight: 700; letter-spacing: .3px; }
+.buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.btn { padding: 14px 26px; border-radius: 10px; font-weight: 600; font-size: 1rem; }
+.btn.primary { background: #155e75; color: white; }
+.btn.primary:hover { background: #0e7490; text-decoration: none; }
+.btn.ghost { border: 1px solid #2d3d52; color: #c9d6e3; }
+.btn.ghost:hover { background: #16223a; text-decoration: none; }
+.statband { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; max-width: 1080px; margin: -8px auto 0; padding: 0 40px 10px; }
+.stat { text-align: center; }
+.stat .n { font-size: 1.9rem; font-weight: 800; color: #67e8f9; }
+.stat .l { color: #8aa0b8; font-size: .85rem; }
+section { padding: 70px 40px; max-width: 1080px; margin: 0 auto; }
+section h2 { font-size: 2rem; margin-bottom: 16px; text-align: center; }
+section.sub h2 { text-align: center; }
+section p.desc { color: #a9b7c6; text-align: center; max-width: 640px; margin: 0 auto 44px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+.card { background: #101a2c; border: 1px solid #1d2a3a; border-radius: 14px; padding: 26px; }
+.card h3 { color: #67e8f9; margin-bottom: 10px; }
+.card p { color: #9fb0c3; font-size: .95rem; }
+pre { background: #0d1626; border: 1px solid #1d2a3a; border-radius: 14px; padding: 26px; overflow-x: auto; font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace; font-size: .92rem; line-height: 1.55; }
+pre .k { color: #c792ea; }
+pre .t { color: #6db3ff; }
+pre .s { color: #c3e88d; }
+pre .f { color: #f78c6c; }
+pre .c { color: #5c6773; }
+.codecols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.qs .step { display: flex; gap: 18px; align-items: flex-start; margin-bottom: 22px; }
+.qs .step .num { flex: 0 0 34px; height: 34px; border-radius: 50%; background: #155e75; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.qs .step > div { flex: 1; }
+.qs .step p { color: #9fb0c3; font-size: .95rem; margin-bottom: 8px; }
+.install { display: block; }
+.install .card h3 { margin-bottom: 14px; }
+.ostabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
+.ostabs .osbtn { background: #101a2c; border: 1px solid #2d3d52; color: #8aa0b8; padding: 9px 20px; border-radius: 9px; font-weight: 600; cursor: pointer; font-size: .9rem; font-family: inherit; }
+.ostabs .osbtn:hover { background: #16223a; }
+.ostabs .osbtn.active { background: #155e75; border-color: #155e75; color: #fff; }
+.install .card { display: none; }
+.install .card.active { display: block; }
+.cmdrow { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.cmdrow pre { flex: 1; margin: 0; }
+.copy { background: #155e75; color: #fff; border: none; padding: 9px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: .8rem; white-space: nowrap; font-family: inherit; }
+.copy:hover { background: #0e7490; }
+.term { margin-top: 36px; background: #080d18; border: 1px solid #1d2a3a; border-radius: 14px; padding: 20px 26px; overflow-x: auto; }
+.term .bar { color: #5c6773; font-size: .8rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.term .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.term pre { font-family: 'Cascadia Code', Consolas, monospace; font-size: .8rem; line-height: 1.5; color: #67e8f9; background: none; border: none; padding: 0; margin: 0; overflow: visible; }
+.term pre .d { color: #4b5865; }
+.dlbox { background: #101a2c; border: 1px solid #1d2a3a; border-radius: 14px; padding: 30px; text-align: center; }
+.dlbtn { display: inline-block; background: linear-gradient(90deg, #155e75, #0e7490); color: #fff; font-weight: 700; padding: 16px 36px; border-radius: 12px; font-size: 1.1rem; }
+.dlbtn:hover { background: linear-gradient(90deg, #0e7490, #06b6d4); text-decoration: none; }
+.dlsmall { margin-top: 14px; color: #8aa0b8; font-size: .85rem; }
+.dlrow { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+.mini { border: 1px solid #2d3d52; color: #c9d6e3; padding: 9px 16px; border-radius: 9px; font-size: .9rem; }
+.mini:hover { background: #16223a; text-decoration: none; }
+.dltable { width: 100%; margin-top: 36px; border-collapse: collapse; font-size: .92rem; }
+.dltable th { text-align: left; color: #5c6773; font-weight: 600; padding: 10px 14px; border-bottom: 1px solid #1d2a3a; font-size: .78rem; text-transform: uppercase; letter-spacing: .5px; }
+.dltable td { padding: 12px 14px; border-bottom: 1px solid #14202f; color: #c9d6e3; }
+.dltable td a { font-weight: 600; }
+.dltable .sub { color: #5c6773; font-size: .78rem; display: block; margin-top: 2px; }
+.sha { text-align: center; color: #5c6773; font-size: .8rem; margin-top: 18px; }
+.sha a { color: #8aa0b8; }
+.pkg { margin-top: 34px; }
+.pkg h3 { text-align: center; color: #c9d6e3; margin-bottom: 6px; font-size: 1.15rem; }
+.pkg p.tagline { text-align: center; color: #5c6773; font-size: .82rem; margin-bottom: 16px; }
+.cheat .card h3 code.inline { background: none; padding: 0; color: #67e8f9; }
+code.inline { background: #1d2a3a; padding: 2px 7px; border-radius: 5px; font-size: .9em; font-family: 'Cascadia Code', Consolas, monospace; }
+.faq details { background: #101a2c; border: 1px solid #1d2a3a; border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; }
+.faq summary { cursor: pointer; font-weight: 600; color: #e6edf3; }
+.faq details p { margin-top: 10px; color: #9fb0c3; font-size: .95rem; }
+.footer { border-top: 1px solid #1d2a3a; padding: 44px 40px 34px; text-align: center; color: #5c6773; font-size: .9rem; }
+.footer .flinks { display: flex; gap: 22px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+.footer .flinks a { color: #8aa0b8; }
+@media (max-width: 800px) { .codecols { grid-template-columns: 1fr; } .hero h1 { font-size: 2.7rem; } .statband { grid-template-columns: 1fr 1fr; } section { padding: 50px 22px; } .nav { padding: 12px 22px; gap: 14px; } }
+</style>
+</head>
+<body>
+<div class='nav'>
+<div class='logo'><svg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 100 100' style='vertical-align:-7px;margin-right:8px'><rect width='100' height='100' rx='22' fill='#0d1b2e'/><rect width='100' height='100' rx='22' fill='none' stroke='#1d2a3a'/><defs><linearGradient id='lg' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#67e8f9'/><stop offset='1' stop-color='#a78bfa'/></linearGradient></defs><text x='50' y='68' font-size='56' text-anchor='middle' fill='url(#lg)' font-family='monospace' font-weight='800'>Y</text></svg>York<span>.</span></div>
+<a href='#features'>Features</a>
+<a href='#code'>Code</a>
+<a href='#quickstart'>Quickstart</a>
+<a href='#install'>Install</a>
+<a href='#faq'>FAQ</a>
+<a href='https://github.com/york-lang/york'>GitHub</a>
+<div class='spacer'></div>
+<span class='navver'>v0.1.0</span>
+<a class='cta' href='#install'>Get started</a>
+</div>
+<div class='hero'>
+<h1>The speed of <span>C</span>,<br>the feel of <span>Java &amp; JS</span>.</h1>
+<p class='lead'>York is a fast, simple systems language. Write clean, familiar code, compile to a single native binary — no runtime, no garbage collector, no classes.</p>
+<div class='buttons'>
+<a class='btn primary' href='#install'>Install York</a>
+<a class='btn ghost' href='#quickstart'>Try it in 60 seconds</a>
+</div>
+<div class='chips'>
+<span class='chip'>latest <b>v0.1.0</b><span class='tag'>LTS</span></span>
+<span class='chip'><b>3</b>&nbsp; platforms</span>
+<span class='chip'>WebAssembly <b>on the way</b></span>
+<span class='chip'><b>MIT</b>&nbsp; licensed</span>
+</div>
+</div>
+<div class='statband'>
+<div class='stat'><div class='n'>0.1.0</div><div class='l'>Latest release</div></div>
+<div class='stat'><div class='n'>3</div><div class='l'>Platforms: win · mac · linux</div></div>
+<div class='stat'><div class='n'>1</div><div class='l'>Native binary out</div></div>
+<div class='stat'><div class='n'>0</div><div class='l'>GC · runtime · magic</div></div>
+</div>
+<section id='features' class='sub'>
+<h2>Built for how you actually code</h2>
+<p class='desc'>Syntax you already know, performance you expect, zero magic under the hood.</p>
+<div class='grid'>
+<div class='card'>
+<h3>Familiar syntax</h3>
+<p>Java and JavaScript style: typed params, this, method calls, for loops — no boilerplate, no ceremony.</p>
+</div>
+<div class='card'>
+<h3>No classes, no clutter</h3>
+<p>Plain structs for data, impl blocks for methods, traits for behavior. Composition beats inheritance, always.</p>
+</div>
+<div class='card'>
+<h3>Arena memory</h3>
+<p>Stack-like arena allocation with stash semantics. Fast, predictable, and trivially safe — no GC pauses, ever.</p>
+</div>
+<div class='card'>
+<h3>Single native binary</h3>
+<p>York compiles straight to C and then to your platform's native code. Drop the binary anywhere; it just runs.</p>
+</div>
+<div class='card'>
+<h3>Fast compiler</h3>
+<p>A friendly pipeline that goes from source to native output in seconds — designed for edit-run-fix loops, not coffee breaks.</p>
+</div>
+<div class='card'>
+<h3>WebAssembly on deck</h3>
+<p>Compile the same York source to WebAssembly for the browser. One language, native speed, everywhere.</p>
+</div>
+<div class='card'>
+<h3>One-command install</h3>
+<p>A tiny installer drops york on your PATH. Download it from this page, or pipe one line to your shell. No Rust toolchain, no giant SDK.</p>
+</div>
+<div class='card'>
+<h3>Enums & switch</h3>
+<p>Type-safe enums with first-class switch statements. Compile-time checked variants, compiled straight to native C switches.</p>
+</div>
+<div class='card'>
+<h3>Honest errors</h3>
+<p>Errors point at the problem with the surrounding code — not a wall of cryptic template vomit.</p>
+</div>
+</div>
+</section>
+<section id='code' class='sub'>
+<h2>Write it the way you already think</h2>
+<p class='desc'>Value semantics by default. When you read from an arena you get a copy — mutation is explicit.</p>
+<div class='codecols'>
+<div>
+<pre>
+<span class='c'>// hello in York</span>
+<span class='k'>public static void</span> <span class='f'>main</span>(<span class='t'>String</span>[] args) {
+<span class='t'>Arena</span>&lt;<span class='t'>Player</span>&gt; players = <span class='k'>new</span> <span class='t'>Arena</span>(1000);
+players.<span class='f'>push</span>(<span class='t'>Player</span> { pos: 1.0, hp: 100.0 });
+
+<span class='k'>for</span> (<span class='t'>Player</span> p : players) {
+    p.<span class='f'>damage</span>(10.0);
+    <span class='f'>println</span>(p.hp);
+}
+}
+</pre>
+</div>
+<div>
+<pre class='c'>
+<span class='k'>struct</span> <span class='t'>Player</span> {
+    <span class='t'>float</span> pos;
+    <span class='t'>float</span> hp;
+}
+
+<span class='k'>impl</span> <span class='t'>Player</span> {
+    <span class='t'>void</span> <span class='f'>damage</span>(<span class='t'>float</span> amount) {
+        <span class='k'>this</span>.hp -= amount;
+        <span class='k'>if</span> (<span class='k'>this</span>.hp &lt; 0.0) { <span class='k'>this</span>.hp = 0.0; }
+    }
+}
+</pre>
+</div>
+</div>
+</section>
+<section id='enums' class='sub'>
+<h2>Enums and switch</h2>
+<p class='desc'>Declare types you care about, then branch on them — safely and fast.</p>
+<div class='codecols'>
+<div>
+<pre>
+<span class='c'>// directions</span>
+<span class='k'>enum</span> <span class='t'>Dir</span> { <span class='t'>North</span>, <span class='t'>East</span>, <span class='t'>South</span>, <span class='t'>West</span> }
+
+<span class='k'>void</span> <span class='f'>describe</span>(<span class='t'>Dir</span> d) {
+    <span class='k'>switch</span> (d) {
+        <span class='k'>case</span> <span class='t'>Dir</span>.North:
+            <span class='f'>println</span>(<span class='s'>"up"</span>);
+            <span class='k'>break</span>;
+        <span class='k'>case</span> <span class='t'>Dir</span>.South:
+            <span class='f'>println</span>(<span class='s'>"down"</span>);
+            <span class='k'>break</span>;
+        <span class='k'>default</span>:
+            <span class='f'>println</span>(<span class='s'>"sideways"</span>);
+    }
+}
+</pre>
+</div>
+<div>
+<pre class='c'>
+<span class='k'>enum</span> <span class='t'>Status</span> { <span class='t'>Ok</span>, <span class='t'>Warn</span>, <span class='t'>Err</span> }
+
+<span class='t'>Status</span> s = <span class='t'>Status</span>.Ok;
+
+<span class='k'>if</span> (s == <span class='t'>Status</span>.Ok) {
+    <span class='f'>println</span>(<span class='s'>"all good"</span>);
+}
+</pre>
+</div>
+</div>
+</section>
+<section id='quickstart' class='sub'>
+<h2>Hello, York — in three steps</h2>
+<p class='desc'>Install once, then this is the whole flow. No build files to hand-edit.</p>
+<div class='qs'>
+<div class='step'>
+<div class='num'>1</div>
+<div>
+<p>Scaffold a project. York drops a <code class='inline'>main.yk</code> you can open and edit.</p>
+<div class='cmdrow'><pre>york new hello</pre><button class='copy' type='button'>copy</button></div>
+</div>
+</div>
+<div class='step'>
+<div class='num'>2</div>
+<div>
+<p>Jump in and write some code.</p>
+<div class='cmdrow'><pre>cd hello</pre><button class='copy' type='button'>copy</button></div>
+</div>
+</div>
+<div class='step'>
+<div class='num'>3</div>
+<div>
+<p>Compile to native and run. The whole loop is one command.</p>
+<div class='cmdrow'><pre>york run main.yk</pre><button class='copy' type='button'>copy</button></div>
+</div>
+</div>
+</div>
+<div class='term'>
+<div class='bar'><span class='dot' style='background:#ff5f56'></span><span class='dot' style='background:#ffbd2e'></span><span class='dot' style='background:#27c93f'></span>&nbsp; hello</div>
+<pre>
+<span class='d'>$</span> york run main.yk
+Compiling hello …
+<span style='color:#c3e88d'>Hello, York!</span>
+</pre>
+</div>
+</section>
+<section id='install' class='sub'>
+<h2>Get York</h2>
+<p class='desc'>Download a prebuilt binary straight from this site, or use your package manager. Artifacts are small, self-contained, and signed by checksum.</p>
+<div class='dlbox'>
+<a class='dlbtn' id='dlbtn' href='/releases/download/v0.1.0/york-setup-x64.exe'>Download for your OS</a>
+<p class='dlsmall' id='dlhint'>Your OS is detected automatically. SHA-256 checksums below.</p>
+<div class='dlrow'>
+<a class='mini' href='/releases/download/v0.1.0/york-setup-x64.exe'>Windows .exe</a>
+<a class='mini' href='/releases/download/v0.1.0/york-x86_64-windows.zip'>Windows .zip</a>
+<a class='mini' href='/releases/download/v0.1.0/york-aarch64-apple-darwin.tar.gz'>macOS (Apple Silicon)</a>
+<a class='mini' href='/releases/download/v0.1.0/york-x86_64-apple-darwin.tar.gz'>macOS (Intel)</a>
+<a class='mini' href='/releases/download/v0.1.0/york-x86_64-linux.tar.gz'>Linux x64</a>
+<a class='mini' href='/releases/download/v0.1.0/york-aarch64-linux.tar.gz'>Linux ARM64</a>
+<a class='mini' href='/releases/download/v0.1.0/york-0.1.0.tar.gz'>Source</a>
+</div>
+</div>
+<table class='dltable'>
+<tr><th>Platform</th><th>Download</th><th>Size</th></tr>
+<tr><td>Windows</td><td><a href='/releases/download/v0.1.0/york-setup-x64.exe'>york-setup-x64.exe</a><span class='sub'>Setup — double-click to install, node style</span></td><td>≈ 1.5 MB</td></tr>
+<tr><td>Windows</td><td><a href='/releases/download/v0.1.0/york-x86_64-windows.zip'>york-x86_64-windows.zip</a><span class='sub'>Binary archive — x64, no installer</span></td><td>≈ 0.5 MB</td></tr>
+<tr><td>macOS</td><td><a href='/releases/download/v0.1.0/york-aarch64-apple-darwin.tar.gz'>york-aarch64-apple-darwin.tar.gz</a><span class='sub'>Apple Silicon</span></td><td>≈ 3 MB</td></tr>
+<tr><td>macOS</td><td><a href='/releases/download/v0.1.0/york-x86_64-apple-darwin.tar.gz'>york-x86_64-apple-darwin.tar.gz</a><span class='sub'>Intel</span></td><td>≈ 3 MB</td></tr>
+<tr><td>Linux</td><td><a href='/releases/download/v0.1.0/york-x86_64-linux.tar.gz'>york-x86_64-linux.tar.gz</a><span class='sub'>GNU libc — x64</span></td><td>≈ 2 MB</td></tr>
+<tr><td>Linux</td><td><a href='/releases/download/v0.1.0/york-aarch64-linux.tar.gz'>york-aarch64-linux.tar.gz</a><span class='sub'>GNU libc — ARM64</span></td><td>≈ 2 MB</td></tr>
+<tr><td>Source</td><td><a href='/releases/download/v0.1.0/york-0.1.0.tar.gz'>york-0.1.0.tar.gz</a><span class='sub'>Build from source</span></td><td>—</td></tr>
+</table>
+<p class='sha'>Every release is signed and verified against its <a href='/releases/download/v0.1.0/SHASUMS256.txt'>SHA-256 checksums</a>.</p>
+<div class='pkg'>
+<h3>Or install with a package manager</h3>
+<p class='tagline'>Auto-detected for your OS. The same installer that pages this site.</p>
+<div class='ostabs'>
+<button class='osbtn' data-os='windows' type='button'>Windows</button>
+<button class='osbtn' data-os='macos' type='button'>macOS</button>
+<button class='osbtn' data-os='linux' type='button'>Linux</button>
+</div>
+<div class='install'>
+<div class='card' data-os='windows'>
+<h3>Windows</h3>
+<div class='cmdrow'><pre>irm https://raw.githubusercontent.com/york-lang/york/main/installers/install.ps1 | iex</pre><button class='copy' type='button'>copy</button></div>
+<p style='color:#8aa0b8;font-size:.85rem;margin-top:10px'>Installs to <code class='inline'>%LOCALAPPDATA%\Programs\york</code> and adds it to your PATH.</p>
+</div>
+<div class='card' data-os='macos'>
+<h3>macOS</h3>
+<div class='cmdrow'><pre>curl -fsSL https://raw.githubusercontent.com/york-lang/york/main/installers/install.sh | sh</pre><button class='copy' type='button'>copy</button></div>
+<p style='color:#8aa0b8;font-size:.85rem;margin-top:10px'>Installs to <code class='inline'>~/.york/bin</code> and adds it to your PATH.</p>
+</div>
+<div class='card' data-os='linux'>
+<h3>Linux</h3>
+<div class='cmdrow'><pre>curl -fsSL https://raw.githubusercontent.com/york-lang/york/main/installers/install.sh | sh</pre><button class='copy' type='button'>copy</button></div>
+<p style='color:#8aa0b8;font-size:.85rem;margin-top:10px'>Installs to <code class='inline'>~/.york/bin</code> and adds it to your PATH.</p>
+</div>
+</div>
+<div class='term'>
+<div class='bar'><span class='dot' style='background:#ff5f56'></span><span class='dot' style='background:#ffbd2e'></span><span class='dot' style='background:#27c93f'></span>&nbsp; york installer</div>
+<pre>
+<span class='d'>$</span> irm https://raw.githubusercontent.com/york-lang/york/main/installers/install.ps1 | iex
+
+<span style='color:#a78bfa'>   ██╗  ██╗ ██████╗ ██████╗ ██╗  ██╗</span>
+<span style='color:#a78bfa'>   ██║ ██╔╝██╔═══██╗██╔══██╗██║ ██╔╝</span>
+<span style='color:#a78bfa'>   █████╔╝ ██║   ██║██████╔╝█████╔╝ </span>
+<span style='color:#a78bfa'>   ██╔═██╗ ██║   ██║██╔══██╗██╔═██╗ </span>
+<span style='color:#a78bfa'>   ██║  ██╗╚██████╔╝██║  ██║██║  ██╗</span>
+<span style='color:#a78bfa'>   ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝</span>
+<span style='color:#67e8f9'>██╗    ██╗  █████╗  ███████╗  █████╗  ██╗   ██╗</span>
+<span style='color:#67e8f9'>██║    ██║  ██╔══██╗  ██╔════╝  ██╔══██╗  ╚██╗ ██╔╝</span>
+<span style='color:#67e8f9'>██║ █╗ ██║  ███████║  ███████╗  ███████║   ╚████╔╝ </span>
+<span style='color:#67e8f9'>██║███╗██║  ██╔══██║  ╚════██║  ██╔══██║    ╚██╔╝  </span>
+<span style='color:#67e8f9'>╚███╔███╔╝  ██║  ██║  ███████║  ██║  ██║     ██║   </span>
+<span style='color:#67e8f9'> ╚══╝╚══╝  ╚═╝  ╚═╝  ╚══════╝  ╚═╝  ╚═╝     ╚═╝   </span>
+
+<span style='color:#5c6773'>[*] downloading york-setup-x64.exe …</span>
+<span style='color:#c3e88d'>[+] York Setup — installing to %LOCALAPPDATA%\Programs\york</span>
+<span style='color:#c3e88d'>[+] york added to your PATH</span>
+
+<span style='color:#67e8f9'>york 0.1.0 installed. Run 'york --help' to get started.</span>
+<span class='d'>$</span> york new hello <span class='d'>&&</span> cd hello <span class='d'>&&</span> york run main.yk
+</pre>
+</div>
+<p style='text-align:center; color:#9fb0c3; margin-top:30px;'>Then <code class='inline'>york new hello</code> creates a project and <code class='inline'>york dev</code> rebuilds &amp; re-runs it on every save.</p>
+</section>
+<section id='cli' class='sub'>
+<h2>The whole CLI on one card</h2>
+<p class='desc'>Five commands cover the entire workflow.</p>
+<div class='grid'>
+<div class='card'>
+<h3><code class='inline'>york new NAME</code></h3>
+<p>Scaffold a fresh project with a starter main.yk.</p>
+</div>
+<div class='card'>
+<h3><code class='inline'>york build</code></h3>
+<p>Compile the current project to a native binary.</p>
+</div>
+<div class='card'>
+<h3><code class='inline'>york run FILE</code></h3>
+<p>Compile and run a York source file in one step.</p>
+</div>
+<div class='card'>
+<h3><code class='inline'>york dev</code></h3>
+<p>Watch your files and rebuild & re-run on every save.</p>
+</div>
+<div class='card'>
+<h3><code class='inline'>york fmt</code></h3>
+<p>Format your code with the built-in formatter.</p>
+</div>
+<div class='card'>
+<h3><code class='inline'>york --version</code></h3>
+<p>Confirm which York you're running.</p>
+</div>
+</div>
+</section>
+<section id='faq' class='sub faq'>
+<h2>Questions, answered</h2>
+<details>
+<summary>Do I need Rust, the JDK, or anything else installed?</summary>
+<p>No. York ships as a prebuilt native binary — the installer just puts it on your PATH. Nothing else to install.</p>
+</details>
+<details>
+<summary>How does York handle memory?</summary>
+<p>Arena memory with value semantics: data lives in fast stack-like arenas, you read copies, and mutation is explicit. No garbage collector, no borrow-checker ceremony.</p>
+</details>
+<details>
+<summary>Is York ready for production?</summary>
+<p>0.1.0 is early but real: structs, impls, traits, enums with switch, arrays, and file I/O all compile to native C. The WASM backend and more libraries are on the roadmap.</p>
+</details>
+<details>
+<summary>Can I compile York for the browser?</summary>
+<p>Soon. The WebAssembly backend is in progress, and it compiles the same York source you run natively.</p>
+</details>
+<details>
+<summary>How do I uninstall York?</summary>
+<p>Delete the install directory (%LOCALAPPDATA%\Programs\york on Windows, ~/.york on macOS and Linux) and remove the PATH entry the installer added. Two steps, done.</p>
+</details>
+<details>
+<summary>What's the license?</summary>
+<p>MIT. Free to use, fork, and ship — no strings attached.</p>
+</details>
+</section>
+<div class='footer'>
+<div class='flinks'>
+<a href='#features'>Features</a>
+<a href='#code'>Code</a>
+<a href='#quickstart'>Quickstart</a>
+<a href='#install'>Install</a>
+<a href='#cli'>CLI</a>
+<a href='#faq'>FAQ</a>
+<a href='https://github.com/york-lang/york'>GitHub</a>
+</div>
+York 0.1.0 · MIT · Built with <a href='https://github.com/york-lang/york'>York</a>, compiled to native.
+</div>
+<script src='site.js'></script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+{
+  "scopeName": "source.york",
+  "name": "York",
+  "fileTypes": [".yk"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#keywords" },
+    { "include": "#types" },
+    { "include": "#operators" },
+    { "include": "#identifiers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        { "begin": "//", "end": "$", "name": "comment.line.double-slash.york" },
+        { "begin": "/\\*", "end": "\\*/", "name": "comment.block.york" }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        { "begin": "\"", "end": "\"", "name": "string.quoted.double.york",
+          "patterns": [{ "match": "\\\\.", "name": "constant.character.escape.york" }] }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        { "match": "\\b(0[xX][0-9a-fA-F]+|\\d+(\\.\\d+)?)\\b", "name": "constant.numeric.york" }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        { "match": "\\b(public|static|void|struct|impl|enum|switch|case|break|default|if|else|for|while|return|new|true|false|this|null)\\b",
+          "name": "keyword.control.york" }
+      ]
+    },
+    "types": {
+      "patterns": [
+        { "match": "\\b(int|float|bool|String)\\b", "name": "storage.type.york" }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        { "match": "==|!=|<=|>=|&&|\\|\\||[-+*/%<>=&|!?:]+", "name": "keyword.operator.york" }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        { "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b", "name": "entity.name.function.york" }
+      ]
+    }
+  }
+}

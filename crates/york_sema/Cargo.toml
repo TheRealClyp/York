@@ -1,0 +1,10 @@
+[package]
+name = "york_sema"
+description = "Semantic analysis and type checking for the York programming language"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+york_ast = { workspace = true }
+york_ir = { workspace = true }
+thiserror = { workspace = true }
