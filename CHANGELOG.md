@@ -1,5 +1,11 @@
 ﻿# York Release Notes
 
+# York 0.5.5 â€” Enhanced Diagnostics & Macro Tooling
+
+- **Diagnostics Engine**: Refined error diagnostics in `york check` with precise line-column suggestions.
+- **Macro Expansion**: Internal preprocessing framework improvements for future metaprogramming.
+- **Win32 UI Layouts**: Additional layout anchor control helpers for native desktop dialogs.
+
 # York 0.5.0 â€” Core Expansion & Ecosystem Refinement
 
 **Major release.** York 0.5.0 introduces deep core enhancements, expanded math builtins, polished Windows binary branding (embedded icon and version resource metadata), comprehensive uninstallation utilities, and absolute security transparency.
@@ -356,6 +362,7 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
 
