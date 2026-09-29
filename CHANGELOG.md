@@ -1,5 +1,11 @@
 ﻿# York Release Notes
 
+# York 1.1.0 â€” Ecosystem Expansion & Stable Release
+
+- **Stable v1.1 Foundation**: Complete language specification freeze, guaranteed backward compatibility, and hardened compiler optimization passes.
+- **Enhanced WebAssembly & Mobile**: Optimized wasm runtime stubs and robust cross-platform mobile bridging.
+- **Enterprise Diagnostics**: Advanced `york doctor` and automated profiling tools.
+
 # York 0.5.5 â€” Enhanced Diagnostics & Macro Tooling
 
 - **Diagnostics Engine**: Refined error diagnostics in `york check` with precise line-column suggestions.
@@ -362,6 +368,7 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
 
