@@ -1,5 +1,22 @@
 ﻿# York Release Notes
 
+# York 0.5.0 â€” Core Expansion & Ecosystem Refinement
+
+**Major release.** York 0.5.0 introduces deep core enhancements, expanded math builtins, polished Windows binary branding (embedded icon and version resource metadata), comprehensive uninstallation utilities, and absolute security transparency.
+
+## Core & Language Enhancements
+- **New Math Builtins**: Added `math_abs` (with automatic `_i` / `_f` overload inference), `math_sqrt`, and `math_pow` for clean mathematical computations.
+- **Embedded PE Metadata & Icon**: `york.exe` now embeds the official York hexagon branding icon and detailed VersionInfo resource metadata (CompanyName, FileDescription, ProductVersion), eliminating generic Windows binary heuristics.
+- **Robust Uninstallation Suite**: Fully integrated uninstallation flows across CLI (`york uninstall`), installation scripts (`install.ps1 -Uninstall`), and Windows Inno Setup (Settings â†’ Apps).
+
+## Security & Trust
+- **Transparent Security Manifesto (`SECURITY.md`)**: Full documentation clarifying false positives and antivirus heuristics on unsigned systems programming tools.
+- **Mark-of-the-Web Unblocking**: `install.ps1` automatically unblocks downloaded binaries to prevent SmartScreen friction.
+
+## Toolchain & Ecosystem
+- Fully refreshed site, download bundles, and package installers.
+- All core crates (`york_cli`, `york_sema`, `york_codegen_c`) bumped to v0.5.0.
+
 # York 0.4.0 â€” One Source, Every Target
 
 **Major release.** The complete mobile framework is now the centerpiece of York, and the README is rewritten as an exhaustive technical specification and reference manual.
@@ -339,6 +356,7 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
 
