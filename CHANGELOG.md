@@ -1,5 +1,14 @@
 ﻿# York Release Notes
 
+# York 1.1.1 â€” Multi-File Imports, HashMap, Result/Option & yc
+
+**Major feature release.** Version 1.1.1 resolves all major feature requests and hurdles:
+- **Multi-File Module Linking**: `import "file.yk";` is fully operational.
+- **Generic `HashMap<K, V>`**: Out-of-the-box key-value dictionaries.
+- **`Result<T, E>` & `Option<T>`**: Safe algebraic error handling sum types.
+- **Custom `yc` Systems Compiler Driver**: GCC/Clang-compatible compiler driver (`yc app.yk -o app -O2`).
+- **Sleek Wordmark Branding**: Upgraded vector, icon, and wordmark brand identity.
+
 # York 1.1.0 â€” Ecosystem Expansion & Stable Release
 
 - **Stable v1.1 Foundation**: Complete language specification freeze, guaranteed backward compatibility, and hardened compiler optimization passes.
@@ -368,6 +377,7 @@ York's first tagged GitHub release. Everything below is verified against `downlo
 - All artifacts verified against `downloads/SHASUMS256.txt` (SHA-256).
 - `york run FILE` â€” compile and run in one step; `york new DIR` scaffolds a project.
 - Git commit hashes are not part of this distribution; source is private.
+
 
 
 
