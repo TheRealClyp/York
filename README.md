@@ -705,7 +705,9 @@ The GUI functions compile everywhere (no-op stubs off Windows); networking and t
 - **Tuples**, **`match` expressions**, **closures/lambdas**.
 - **Explicit casts** and **`sizeof`/`alignof`**.
 - **Tagged/payload enum variants** — only unit variants compile to plain C enums.
-- **`import` cross-file linking** — `import` is parsed but there is no module linker yet; keep sources in one file.
+- **Multi-File Module Linking (`import "file.yk"`)** — Fully supported in v1.1.1; organize and modularize larger codebases across multiple source files effortlessly.
+- **Built-in Generic `HashMap<K, V>` & Sum Types** — Out-of-the-box key-value dictionaries and `Result<T, E>` / `Option<T>` error handling primitives.
+- **Custom `yc` Systems Compiler Driver** — Standalone GCC/Clang-compatible compiler driver with full optimization flags (`-O2`, `-O3`).
 - **Wasm backend** — `york_codegen_wasm` / `york_web` are stubs; the web path today is `york mobile` producing a PWA from native code, not a compiled-to-Wasm toolchain.
 
 ---
