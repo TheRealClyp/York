@@ -1,6 +1,6 @@
 [Setup]
 AppName=York
-AppVersion=1.1.0
+AppVersion=1.1.1
 AppPublisher=York Contributors
 AppPublisherURL=https://github.com/TheRealClyp/York
 AppSupportURL=https://github.com/TheRealClyp/York/issues
@@ -17,13 +17,13 @@ SolidCompression=yes
 Compression=lzma2/max
 ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
-UninstallDisplayName=York 1.1.0
+UninstallDisplayName=York 1.1.1
 UninstallFilesDir={app}\uninstall
-VersionInfoVersion=0.5.0.0
+VersionInfoVersion=1.1.1.0
 VersionInfoCompany=York Contributors
 VersionInfoDescription=York Programming Language Setup
 VersionInfoProductName=York
-VersionInfoProductVersion=0.5.0
+VersionInfoProductVersion=1.1.1
 
 [Dirs]
 Name: {app}\bin

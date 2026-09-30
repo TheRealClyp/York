@@ -740,7 +740,7 @@ dependencies = [
 
 [[package]]
 name = "yc"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -753,14 +753,14 @@ dependencies = [
 
 [[package]]
 name = "york_ast"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "york_cli"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -775,7 +775,7 @@ dependencies = [
 
 [[package]]
 name = "york_codegen_c"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "york_ast",
  "york_ir",
@@ -786,7 +786,7 @@ dependencies = [
 
 [[package]]
 name = "york_codegen_wasm"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "york_ast",
  "york_ir",
@@ -794,7 +794,7 @@ dependencies = [
 
 [[package]]
 name = "york_compiler"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "anyhow",
  "york_ast",
@@ -808,14 +808,14 @@ dependencies = [
 
 [[package]]
 name = "york_ir"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "york_ast",
 ]
 
 [[package]]
 name = "york_lexer"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "thiserror",
  "york_ast",
@@ -823,7 +823,7 @@ dependencies = [
 
 [[package]]
 name = "york_parser"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "thiserror",
  "york_ast",
@@ -832,7 +832,7 @@ dependencies = [
 
 [[package]]
 name = "york_pkg"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -843,7 +843,7 @@ dependencies = [
 
 [[package]]
 name = "york_sema"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "thiserror",
  "york_ast",
@@ -852,7 +852,7 @@ dependencies = [
 
 [[package]]
 name = "york_setup"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "embed-resource",
  "windows-sys 0.59.0",
@@ -860,7 +860,7 @@ dependencies = [
 
 [[package]]
 name = "york_web"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "anyhow",
  "clap",

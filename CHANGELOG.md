@@ -2,12 +2,15 @@
 
 All notable changes to York are tracked here. The site and `release` folder mirror this file.
 
-## Release Roadmap (v0.5.0 → v1.1)
+## 1.1.1 — Multi-File Imports, HashMap, Result/Option & yc Compiler Driver
 
-- **v0.5.2 (Upcoming Patch)**: Performance tuning, tighter compiler diagnostics, and bug fixes for edge cases in mobile build pipelines.
-- **v0.5.5 (Feature Bump)**: Advanced package management features, macro system expansions, and improved Win32 UI layout controls.
-- **v1.0.0 (Production Stable)**: Complete language stability guarantee, extensive standard library modules, and official macOS ARM64 native binaries.
-- **v1.1.0 (Ecosystem Expansion)**: Enhanced web assembly runtime optimization and extended cross-platform GUI bindings.
+**Major feature release.** Version 1.1.1 eliminates remaining language hurdles with full multi-file module linking (`import "file.yk"`), built-in generic `HashMap<K, V>`, `Result<T, E>` & `Option<T>` safe error handling, the standalone `yc` GCC/Clang-compatible compiler driver, and the sleek futuristic **YORK** wordmark brand identity.
+
+- **Multi-File Module Linking**: Split projects across multiple source files using `import "filename.yk";`.
+- **Built-in Generic `HashMap<K, V>`**: High-performance key-value maps out of the box.
+- **`Result<T, E>` & `Option<T>`**: Safe algebraic sum types for clean error handling.
+- **Custom `yc` Compiler Driver**: GCC/Clang-compatible systems compiler driver (`yc main.yk -o app -O2`).
+- **Sleek Wordmark Branding**: Upgraded all logos, icons, and wordmark assets.
 
 ---
 
