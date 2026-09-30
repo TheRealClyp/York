@@ -813,6 +813,20 @@ impl SemaCtx {
                         let resolved = format!("{fn_base}_{}", if is_flt { "f" } else { "i" });
                         return hir::Expr::Call { callee: name.to_string(), resolved, args: lowered_args };
                     }
+                    if name == "math_abs" || name == "abs" {
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let is_flt = lowered_args.first().and_then(|a| self.infer_expr_type(a, scope)).map(|t| t.is_float()).unwrap_or(false);
+                        let resolved = format!("__york_math_abs_{}", if is_flt { "f" } else { "i" });
+                        return hir::Expr::Call { callee: name.to_string(), resolved, args: lowered_args };
+                    }
+                    if name == "math_sqrt" || name == "sqrt" {
+                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        return hir::Expr::Call { callee: name.to_string(), resolved: "__york_math_sqrt".to_string(), args: lowered_args };
+                    }
+                    if name == "math_pow" || name == "pow" {
+                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        return hir::Expr::Call { callee: name.to_string(), resolved: "__york_math_pow".to_string(), args: lowered_args };
+                    }
                     if name == "sleep" || name == "sleep_ms" || name == "delay" {
                         let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         return hir::Expr::Call { callee: name.to_string(), resolved: "__york_sleep".to_string(), args: lowered_args };

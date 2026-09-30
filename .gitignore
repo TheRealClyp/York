@@ -31,3 +31,15 @@ installers/*.msi
 
 # Generated C output
 *.out
+
+# Stray build artifacts in root
+/enterprise.*
+/server.*
+
+# Site example binaries & downloads
+examples/site/main.c
+examples/site/main.exe
+examples/site/downloads/*.exe
+
+# Junk files
+*head -30*

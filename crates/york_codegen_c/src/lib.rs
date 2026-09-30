@@ -620,6 +620,10 @@ pub fn generate(program: &Program) -> String {
     g.line("static double __york_math_pi(void) { return 3.141592653589793; }");
     g.line("static double __york_math_e(void) { return 2.718281828459045; }");
     g.line("static double __york_math_lerp(double a, double b, double t) { return a + (b - a) * t; }");
+    g.line("static long long __york_math_abs_i(long long x) { return x < 0 ? -x : x; }");
+    g.line("static double __york_math_abs_f(double x) { return fabs(x); }");
+    g.line("static double __york_math_sqrt(double x) { return sqrt(x); }");
+    g.line("static double __york_math_pow(double base, double exp) { return pow(base, exp); }");
     g.line("static double __york_degrees_to_radians(double d) { return d * 0.017453292519943295; }");
     g.line("static double __york_radians_to_degrees(double r) { return r * 57.29577951308232; }");
     g.line("static double __york_log2(double x) { return log(x) / log(2.0); }");

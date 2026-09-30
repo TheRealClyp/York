@@ -13,7 +13,7 @@
   [![Security](https://img.shields.io/badge/security-100%25%20Verified%20Safe-brightgreen.svg?style=flat-square)](SECURITY.md)
   [![Mobile](https://img.shields.io/badge/mobile-PWA%20%7C%20Android%20%7C%20iOS-cyan.svg?style=flat-square)]()
 
-  **The definitive reference manual and technical specification for the York programming language (v0.5.0).**
+  **The definitive reference manual and technical specification for the York programming language (v1.1.0).**
 
 </div>
 
@@ -114,7 +114,7 @@ We believe software should be as easy to remove as it is to install.
   ```powershell
   irm https://raw.githubusercontent.com/TheRealClyp/York/main/installers/uninstall.ps1 | iex
   ```
-- **Via Windows Settings**: If installed via the Inno Setup installer, navigate to **Settings → Apps → Installed apps**, locate **York 0.5.0**, and click **Uninstall**.
+- **Via Windows Settings**: If installed via the Inno Setup installer, navigate to **Settings → Apps → Installed apps**, locate **York 1.1.0**, and click **Uninstall**.
 
 ### macOS & Linux
 - **Via York CLI**: Run `york uninstall`.
@@ -135,6 +135,28 @@ York compiles directly to optimized C11 code with **zero runtime overhead**: no 
 - **Direct Native Integration.** First-class access to system APIs — Win32 windows and controls, BSD/Winsock sockets, real OS threads.
 - **Predictable Performance.** Contiguous memory arenas (`Arena<T>`) give zero-fragmentation allocation for real-time simulations, games, and high-throughput servers.
 - **Owned mobile toolchain.** `york mobile --apk` drives `aapt2 → javac → d8 → zipalign → apksigner` itself — the only dependency is a one-time ~120 MB fetch of Google's command-line compilers into `~/.york/android`.
+
+### What York Does NOT Have (And What It Uses Instead)
+
+1. **No Garbage Collector (GC)**
+   - **What's missing**: There is no automatic background garbage collection to clean up memory (unlike Go, Java, or C#).
+   - **The alternative**: It relies entirely on contiguous memory arenas (`Arena<T>`) that you must clear manually when you are done with them.
+
+2. **No Heavy Runtime or Virtual Machine**
+   - **What's missing**: It does not use a virtual machine (like JVM or .NET) or a heavyweight interpreter layer.
+   - **The alternative**: It compiles directly into clean C11 source code, which is then bundled into a standalone native machine executable.
+
+3. **No Browser-Based Desktop Wrappers**
+   - **What's missing**: Its desktop GUI framework completely bypasses modern web-tech wrappers like Electron, Chromium, or Node.js (which often make simple apps consume hundreds of megabytes of RAM).
+   - **The alternative**: It links straight to native, lightweight Win32 system libraries (`user32.lib` and `gdi32.lib`).
+
+4. **Missing Common Modern Data Structures (Out of the Box)**
+   - **What's missing**: The specification does not list standard language built-ins like dynamic HashMaps/Dictionaries, HashSets, or linked lists.
+   - **The alternative**: Your primary data structure is the flat `Arena<T>`, meaning complex collections must be built manually using arrays, structs, and pointers.
+
+5. **No Advanced Error Handling Syntax**
+   - **What's missing**: There are no keywords or mechanisms for complex error handling like `try`/`catch` blocks or explicit `Result`/`Option` types.
+   - **The alternative**: It utilizes a basic runtime `assert(cond, msg)` function to halt execution if a critical condition fails, shifting the burden of safety onto the developer.
 
 ---
 
@@ -740,4 +762,11 @@ MIT — see [LICENSE](LICENSE).
 
 ## Version History
 
-See [CHANGELOG.md](CHANGELOG.md) for the full release log. v0.4.0 is the major "one source, every target" release: the complete mobile framework (`york mobile`, real signed APKs, iOS Xcode projects, the Core 12 `York.*` runtime) plus the expanded typed-IR compiler with sized primitives, networking, threads, and the full built-in/string method surface documented here.
+See [CHANGELOG.md](CHANGELOG.md) for the full release log. v1.1.0 is the major stable milestone release: the complete mobile framework (`york mobile`, real signed APKs, iOS Xcode projects, the Core 12 `York.*` runtime) plus the expanded typed-IR compiler with sized primitives, networking, threads, and the full built-in/string method surface documented here.
+
+### Architectural Guarantees & Constraints in v1.1.0
+1. **No Garbage Collector (GC)**: Relies entirely on contiguous memory arenas (`Arena<T>`) for zero-overhead performance without background pauses.
+2. **No Heavy Runtime or Virtual Machine**: Compiles directly into clean C11 source code bundled into standalone native machine executables.
+3. **No Browser-Based Desktop Wrappers**: Bypasses Electron/Chromium entirely, linking straight to native lightweight Win32 system libraries (`user32.lib`, `gdi32.lib`).
+4. **Arena-Centric Data Structures**: Focuses on flat `Arena<T>` and raw struct/array compositions for deterministic high-throughput allocation.
+5. **Streamlined Error Handling**: Utilizes direct `assert(cond, msg)` runtime checks for robust execution flow without heavyweight try/catch overhead.

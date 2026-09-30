@@ -2,6 +2,15 @@
 
 All notable changes to York are tracked here. The site and `release` folder mirror this file.
 
+## Release Roadmap (v0.5.0 → v1.1)
+
+- **v0.5.2 (Upcoming Patch)**: Performance tuning, tighter compiler diagnostics, and bug fixes for edge cases in mobile build pipelines.
+- **v0.5.5 (Feature Bump)**: Advanced package management features, macro system expansions, and improved Win32 UI layout controls.
+- **v1.0.0 (Production Stable)**: Complete language stability guarantee, extensive standard library modules, and official macOS ARM64 native binaries.
+- **v1.1.0 (Ecosystem Expansion)**: Enhanced web assembly runtime optimization and extended cross-platform GUI bindings.
+
+---
+
 ## 0.5.0 — The Integrity & Usability Milestone
 
 **Monumental release.** Version 0.5.0 brings a complete brand identity revamp with the official high-tech York logo, comprehensive security verification and false-positive resolution, first-class uninstallation across all platforms, built-in diagnostic tooling (`york doctor`), real Base64 encoding/decoding, native `assert` & `read_line` runtime implementations, and major ergonomics upgrades.
