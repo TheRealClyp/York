@@ -176,6 +176,18 @@ Six distinct, deterministic phases managed by the `york_cli` driver:
                                                               └─ york mobile → PWA + Android + iOS
 ```
 
+### The Custom `yc` Compiler Driver
+
+Alongside the `york` CLI driver, York provides **`yc`**, a standalone GCC/Clang-compatible systems compiler driver.
+
+```bash
+yc main.yk -o myapp -O2 -v
+```
+- `-o <file>` — Output executable path.
+- `-O0`, `-O1`, `-O2`, `-O3` — Optimization levels passed to backend compilers.
+- `-c` — Compile only (emit temporary C11 source without linking).
+- `-v` — Verbose pipeline reporting.
+
 ---
 
 ## 3. Lexical Structure & Grammar Specification
