@@ -739,6 +739,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "yc"
+version = "1.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "colored",
+ "york_codegen_c",
+ "york_lexer",
+ "york_parser",
+ "york_sema",
+]
+
+[[package]]
 name = "york_ast"
 version = "1.1.0"
 dependencies = [

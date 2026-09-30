@@ -13,6 +13,7 @@ members = [
     "tools/york_pkg",
     "tools/york_web",
     "tools/york_setup",
+    "tools/yc",
 ]
 
 [workspace.package]

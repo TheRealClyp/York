@@ -1,0 +1,18 @@
+[package]
+name = "yc"
+description = "yc — The Official York Systems Compiler (GCC/Clang-compatible custom compiler driver)"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "yc"
+path = "src/main.rs"
+
+[dependencies]
+york_lexer = { workspace = true }
+york_parser = { workspace = true }
+york_sema = { workspace = true }
+york_codegen_c = { workspace = true }
+clap = { workspace = true }
+colored = { workspace = true }
+anyhow = { workspace = true }
