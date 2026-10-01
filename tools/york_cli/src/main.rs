@@ -100,6 +100,15 @@ enum Commands {
         #[arg(short = 'y', long)]
         yes: bool,
     },
+    /// Manage York packages and dependencies via ypkg (init, add, remove, install, list)
+    #[command(alias = "package", alias = "pkg-js")]
+    Pkg {
+        /// Arguments forwarded to `ypkg`
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        args: Vec<String>,
+    },
+    /// Start the York Language Server (LSP) for IDE support
+    Lsp,
 }
 
 fn main() {
@@ -194,8 +203,33 @@ fn run(cli: Cli) -> Result<()> {
         Commands::Uninstall { yes } => {
             cmd_uninstall(yes)?;
         }
+        Commands::Pkg { args } => {
+            cmd_pkg(&args)?;
+        }
+        Commands::Lsp => {
+            spawn_sidecar("york-lsp", &[])?;
+        }
     }
     Ok(())
+}
+
+/// Run a sidecar binary that ships alongside `york` (e.g. `ypkg`, `york-lsp`, `yc`).
+fn spawn_sidecar(name: &str, args: &[String]) -> Result<()> {
+    let exe_dir = std::env::current_exe()?
+        .parent()
+        .ok_or_else(|| anyhow::anyhow!("cannot resolve executable directory"))?
+        .to_path_buf();
+    let sidecar_exe = exe_dir.join(if cfg!(windows) { format!("{name}.exe") } else { name.to_string() });
+
+    let status = std::process::Command::new(&sidecar_exe)
+        .args(args)
+        .status()
+        .map_err(|e| anyhow::anyhow!("failed to launch `{}` ({}): {e}", sidecar_exe.display(), e))?;
+    std::process::exit(status.code().unwrap_or(0));
+}
+
+fn cmd_pkg(args: &[String]) -> Result<()> {
+    spawn_sidecar("ypkg", args)
 }
 
 fn cmd_build(file: &std::path::Path, out: Option<&str>, cc: Option<&str>) -> Result<()> {

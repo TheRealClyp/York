@@ -11,13 +11,14 @@ members = [
     "crates/york_compiler",
     "tools/york_cli",
     "tools/york_pkg",
+    "tools/york_lsp",
     "tools/york_web",
     "tools/york_setup",
     "tools/yc",
 ]
 
 [workspace.package]
-version = "1.1.1"
+version = "1.1.2"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/york-lang/york"
@@ -35,6 +36,7 @@ york_compiler = { path = "crates/york_compiler" }
 anyhow = "1"
 thiserror = "2"
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 toml = "0.8"
 clap = { version = "4", features = ["derive"] }
 colored = "2"

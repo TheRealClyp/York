@@ -1,0 +1,17 @@
+[package]
+name = "york_lsp"
+description = "york-lsp — The Official York Language Server Protocol (LSP) Server"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "york-lsp"
+path = "src/main.rs"
+
+[dependencies]
+york_lexer = { workspace = true }
+york_parser = { workspace = true }
+york_sema = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }

@@ -1,6 +1,6 @@
 [Setup]
 AppName=York
-AppVersion=1.1.1
+AppVersion=1.1.2
 AppPublisher=York Contributors
 AppPublisherURL=https://github.com/TheRealClyp/York
 AppSupportURL=https://github.com/TheRealClyp/York/issues
@@ -17,7 +17,7 @@ SolidCompression=yes
 Compression=lzma2/max
 ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
-UninstallDisplayName=York 1.1.1
+UninstallDisplayName=York 1.1.2
 UninstallFilesDir={app}\uninstall
 VersionInfoVersion=1.1.1.0
 VersionInfoCompany=York Contributors
@@ -30,6 +30,9 @@ Name: {app}\bin
 
 [Files]
 Source: ..\target\release\york.exe; DestDir: {app}\bin; DestName: york.exe; Flags: ignoreversion
+Source: ..\target\release\ypkg.exe; DestDir: {app}\bin; DestName: ypkg.exe; Flags: ignoreversion
+Source: ..\target\release\york-lsp.exe; DestDir: {app}\bin; DestName: york-lsp.exe; Flags: ignoreversion
+Source: ..\target\release\yc.exe; DestDir: {app}\bin; DestName: yc.exe; Flags: ignoreversion
 Source: ..\LICENSE; DestDir: {app}; Flags: ignoreversion isreadme
 Source: uninstall.ps1; DestDir: {app}; Flags: ignoreversion
 

@@ -2,6 +2,17 @@
 
 All notable changes to York are tracked here. The site and `release` folder mirror this file.
 
+## 1.1.2 — Package Manager (`ypkg`) & Language Server (`york-lsp`)
+
+**Ecosystem milestone.** Version 1.1.2 closes the two gaps from the architecture review that block a perfect **5.0** rating — a package manager and official LSP support:
+
+- **Package Manager (`ypkg` / `york pkg`)**: Cargo-style `york.toml` manifests; `init`, `add`, `remove`, `install`, `list`, `publish`; local `york_modules/` dependency tree; walks *up* parent directories to find a manifest.
+- **Language Server (`york-lsp` / `york lsp`)**: Standard LSP over stdio (`Content-Length` framed JSON-RPC 2.0). Real-time diagnostics from the **full** lexer → parser → sema pipeline with byte-accurate line/column ranges, autocomplete (keywords + every built-in), and hover. Compatible with Neovim, VS Code, Sublime, Emacs, and Helix.
+- **Full toolchain binaries ship everywhere**: `york`, `ypkg`, `york-lsp`, and `yc` are now bundled into the Windows installer, the Windows zip, and both Linux `musl` tarballs (x86_64 + aarch64).
+- **README 14.1 / 14.2**: Complete Package Manager and LSP reference documentation added.
+
+---
+
 ## 1.1.1 — Multi-File Imports, HashMap, Result/Option & yc Compiler Driver
 
 **Major feature release.** Version 1.1.1 eliminates remaining language hurdles with full multi-file module linking (`import "file.yk"`), built-in generic `HashMap<K, V>`, `Result<T, E>` & `Option<T>` safe error handling, the standalone `yc` GCC/Clang-compatible compiler driver, and the sleek futuristic **YORK** wordmark brand identity.

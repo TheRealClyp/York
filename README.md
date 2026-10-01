@@ -13,7 +13,7 @@
   [![Security](https://img.shields.io/badge/security-100%25%20Verified%20Safe-brightgreen.svg?style=flat-square)](SECURITY.md)
   [![Mobile](https://img.shields.io/badge/mobile-PWA%20%7C%20Android%20%7C%20iOS-cyan.svg?style=flat-square)]()
 
-  **The definitive reference manual and technical specification for the York programming language (v1.1.0).**
+  **The definitive reference manual and technical specification for the York programming language (v1.1.2).**
 
 </div>
 
@@ -114,7 +114,7 @@ We believe software should be as easy to remove as it is to install.
   ```powershell
   irm https://raw.githubusercontent.com/TheRealClyp/York/main/installers/uninstall.ps1 | iex
   ```
-- **Via Windows Settings**: If installed via the Inno Setup installer, navigate to **Settings → Apps → Installed apps**, locate **York 1.1.0**, and click **Uninstall**.
+- **Via Windows Settings**: If installed via the Inno Setup installer, navigate to **Settings → Apps → Installed apps**, locate **York 1.1.2**, and click **Uninstall**.
 
 ### macOS & Linux
 - **Via York CLI**: Run `york uninstall`.
@@ -590,6 +590,8 @@ explicit path → `resource.ypg` manifest (`entry`/`main`) → `main.yk` → `sr
 | `york new [name]` | Scaffold a desktop project (`src/main.yk`) |
 | `york new-mobile [name]` | Scaffold a mobile app project |
 | `york mobile <app.yk> ...` | Build PWA / Android / iOS from a York program (§15) |
+| `york pkg init\|add\|remove\|install\|list\|publish` | The York Package Manager — manage `york.toml` dependencies and `york_modules/` (§14.1) |
+| `york lsp` | Start the **York Language Server** (LSP) for real-time diagnostics, autocomplete & hover in any IDE/editor (§14.2) |
 | `york doctor` | Inspect environment, C compiler health, PATH status, and toolchain readiness |
 | `york uninstall [-y]` | Safely remove York from the local system |
 | `york --version` / `york -c, --credits` | Version badge / ASCII banner |
@@ -604,6 +606,68 @@ cd hello
 york run main.yk      # compile -> Hello, York!
 york dev              # keep editing; it rebuilds on save
 york build --out hello-exe
+```
+
+---
+
+### 14.1 Package Manager (`ypkg`)
+
+> **The official York package manager.** `ypkg` ships alongside `york`, and is also reachable through `york pkg ...`. It manages a Cargo-style `york.toml` manifest, resolves dependencies into a local `york_modules/` tree, and validates packages for publication — a huge step toward a full community ecosystem.
+
+| Subcommand | Description |
+| :--- | :--- |
+| `york pkg init [name]` | Scaffold a new package: `york.toml` + `src/main.yk` |
+| `york pkg add <pkg> [ver]` | Add a dependency to `[dependencies]` and install it into `york_modules/<pkg>` |
+| `york pkg remove <pkg>` | Remove a dependency and its installed module |
+| `york pkg install` | Resolve and install *all* dependencies listed in `york.toml` |
+| `york pkg list` | Show package metadata and the dependency graph |
+| `york pkg publish` | Validate manifest + source layout and confirm publish-readiness |
+
+Example:
+```bash
+york pkg init mygame
+cd mygame
+york pkg add http 0.2.0
+york pkg list
+# Package: mygame (v0.1.0)
+# Dependencies:
+#   ├── http 0.2.0
+```
+
+`york.toml` is standard TOML with `[package]` (name, version, description, authors, license) and `[dependencies]` (`name = "version"`) tables.
+
+---
+
+### 14.2 Language Server Protocol (`york-lsp`)
+
+> **The official York Language Server** — speaks standard LSP (JSON-RPC 2.0 over stdio), turning any modern editor into a first-class York IDE. Launch it directly (`york-lsp`) or via the CLI (`york lsp`).
+
+**Diagnostics (red squiggles in real time).** On every open/change, `york-lsp` runs the full pipeline — `york_lexer::lex → york_parser::parse → york_sema::analyze` — and publishes byte-accurate `Diagnostic` ranges (line/column resolved from the source buffer):
+
+| Stage | Example diagnostic |
+| :--- | :--- |
+| Lexer | `unknown character '#'` |
+| Parser | `at 16..20: expected ')'` |
+| Semantics | `at 16..20: undefined function 'prnt'` |
+
+**Autocomplete.** `completionProvider` with trigger characters `.` and `:` returns York keywords (`fn`, `struct`, `impl`, `enum`, `switch`, `case`, `Arena`, `HashMap`, `Result`, `Option`, `String`) plus every built-in function (`println`, `math_sqrt`, `net_listen`, `thread_spawn`, `window_create`, …) with kind + documentation.
+
+**Hover.** Rich Markdown hover for York constructs and built-ins.
+
+**Editor wiring** (any editor that supports LSP):
+- **Neovim** — `vim.lsp.start({ name = "york-lsp", cmd = { "york", "lsp" } })`
+- **VS Code** — add `"york-lsp"` as a language server for `*.yk` files, or use any LSP client extension pointing `cmd` at `york lsp`.
+- **Sublime / Emacs / Helix** — configure a generic LSP client for `york-lsp`.
+
+Server capabilities advertised in the LSP `initialize` handshake:
+```json
+{
+  "capabilities": {
+    "textDocumentSync": 1,
+    "completionProvider": { "resolveProvider": false, "triggerCharacters": [".", ":"] },
+    "hoverProvider": true
+  }
+}
 ```
 
 ---
@@ -693,22 +757,25 @@ The GUI functions compile everywhere (no-op stubs off Windows); networking and t
 
 ## 17. Limits & Language Capabilities
 
-### Newly Supported in v0.5.0:
+### Newly Supported (v0.5.0 → v1.1.2):
 - **`assert(cond, [msg])`** — Fully implemented and wired in C codegen with panic formatting.
 - **`read_line()` / `readLine()` / `input()`** — Full stdin line reading with automatic newline stripping.
 - **Real RFC 4648 Base64** — `str_base64_encode` and `str_base64_decode` with full padding support.
 - **Diagnostic Tooling** — `york doctor` for instant toolchain environment auditing.
 - **Automated Uninstallation** — First-class `york uninstall` across Windows, macOS, and Linux.
+- **Package Manager (`ypkg`)** — Full `york pkg init/add/remove/install/list/publish` workflow with `york.toml` manifests (§14.1).
+- **Language Server (`york-lsp`)** — Standard LSP over stdio: real-time diagnostics (lexer/parser/sema), autocomplete, and hover (§14.2).
 
 ### Remaining Boundaries & Work-in-Progress:
 - **Array literals** (`[a, b, c]`) — use `Arena<T>` or slices.
 - **Tuples**, **`match` expressions**, **closures/lambdas**.
 - **Explicit casts** and **`sizeof`/`alignof`**.
 - **Tagged/payload enum variants** — only unit variants compile to plain C enums.
-- **Multi-File Module Linking (`import "file.yk"`)** — Fully supported in v1.1.1; organize and modularize larger codebases across multiple source files effortlessly.
+- **Multi-File Module Linking (`import "file.yk"`)** — Fully supported in v1.1.2; organize and modularize larger codebases across multiple source files effortlessly.
 - **Built-in Generic `HashMap<K, V>` & Sum Types** — Out-of-the-box key-value dictionaries and `Result<T, E>` / `Option<T>` error handling primitives.
 - **Custom `yc` Systems Compiler Driver** — Standalone GCC/Clang-compatible compiler driver with full optimization flags (`-O2`, `-O3`).
 - **Wasm backend** — `york_codegen_wasm` / `york_web` are stubs; the web path today is `york mobile` producing a PWA from native code, not a compiled-to-Wasm toolchain.
+- **Public package registry** — `ypkg publish` validates packages today; a hosted registry + `ypkg install <pkg>` remote fetch is on the roadmap.
 
 ---
 
@@ -776,7 +843,7 @@ MIT — see [LICENSE](LICENSE).
 
 ## Version History
 
-See [CHANGELOG.md](CHANGELOG.md) for the full release log. v1.1.0 is the major stable milestone release: the complete mobile framework (`york mobile`, real signed APKs, iOS Xcode projects, the Core 12 `York.*` runtime) plus the expanded typed-IR compiler with sized primitives, networking, threads, and the full built-in/string method surface documented here.
+See [CHANGELOG.md](CHANGELOG.md) for the full release log. **v1.1.2** delivers the missing ecosystem pieces from the architecture review that pushed York's production-viability rating to **4.3/5.0** — the official **Package Manager (`ypkg` / `york pkg`)** and the official **Language Server (`york-lsp`, standard LSP over stdio)** that turn any editor into a first-class York IDE with real-time diagnostics, autocomplete, and hover. v1.1.0 was the major stable milestone release: the complete mobile framework (`york mobile`, real signed APKs, iOS Xcode projects, the Core 12 `York.*` runtime) plus the expanded typed-IR compiler with sized primitives, networking, threads, and the full built-in/string method surface documented here.
 
 ### Architectural Guarantees & Constraints in v1.1.0
 1. **No Garbage Collector (GC)**: Relies entirely on contiguous memory arenas (`Arena<T>`) for zero-overhead performance without background pauses.
