@@ -1,42 +1,30 @@
-﻿# York Release Notes
-
-# York v1.1.3
-
-## Android Addon â€” downloaded separately, like Android Studio
-
-The Android build compilers are now an **optional addon**, never bundled with the language installer â€” exactly the model you asked for: there's an addon on the **website** and **GitHub** that you fetch yourself when you want Android Studioâ€“style APK building.
-
-### What changed
-- **`york pkg add android-toolchain`** â€” one-time ~120 MB install of `aapt2`, `d8`, `zipalign`, `apksigner` + `platform-34/android.jar` into `~/.york/android`, plus a local debug signing key.
-- **Standalone addon scripts** (no York needed): `android-addon.ps1` (Windows) and `android-addon.sh` (Linux / macOS) â€” published as GitHub release assets and linked from the website downloads section.
-- **No silent downloads:** `york mobile app.yk --apk` now stops with the exact install command if the addon is missing, instead of fetching Google's compilers behind your back.
-- Website added an **Android Addon** card; the README gained Â§15.1 documenting the addon.
-
-### Try it
-```bash
-york pkg add android-toolchain        # ~120 MB, one-time
-york mobile src/app.yk --apk          # signed build/apk/app-debug.apk
-```
-
-### Checksums
-`android-addon.ps1` and `android-addon.sh` are included in the release `SHASUMS256.txt` sets.
-
 # York Changelog
 
 All notable changes to York are tracked here. The site and `release` folder mirror this file.
 
-## 1.1.2 â€” Package Manager (`ypkg`) & Language Server (`york-lsp`)
+## 1.1.3 — Android Addon (downloaded separately, like Android Studio)
 
-**Ecosystem milestone.** Version 1.1.2 closes the two gaps from the architecture review that block a perfect **5.0** rating â€” a package manager and official LSP support:
+**Toolchain separation.** The Android build compilers are now an **optional addon**, not part of the language. Like installing Android Studio, you fetch it explicitly:
+
+- **`york pkg add android-toolchain`** — one-time ~120 MB install into `~/.york/android` (aapt2, d8, zipalign, apksigner, `platform-34/android.jar`, local `debug.keystore`).
+- **Standalone addon scripts** published on the website and GitHub releases: `android-addon.ps1` (Windows) and `android-addon.sh` (Linux/macOS).
+- **No silent downloads**: `york mobile --apk` now errors with the exact install command when the addon is missing instead of fetching behind the scenes.
+- Website gained an **Android Addon** download section; README §15.1 documents the addon model.
+
+---
+
+## 1.1.2 — Package Manager (`ypkg`) & Language Server (`york-lsp`)
+
+**Ecosystem milestone.** Version 1.1.2 closes the two gaps from the architecture review that block a perfect **5.0** rating — a package manager and official LSP support:
 
 - **Package Manager (`ypkg` / `york pkg`)**: Cargo-style `york.toml` manifests; `init`, `add`, `remove`, `install`, `list`, `publish`; local `york_modules/` dependency tree; walks *up* parent directories to find a manifest.
-- **Language Server (`york-lsp` / `york lsp`)**: Standard LSP over stdio (`Content-Length` framed JSON-RPC 2.0). Real-time diagnostics from the **full** lexer â†’ parser â†’ sema pipeline with byte-accurate line/column ranges, autocomplete (keywords + every built-in), and hover. Compatible with Neovim, VS Code, Sublime, Emacs, and Helix.
+- **Language Server (`york-lsp` / `york lsp`)**: Standard LSP over stdio (`Content-Length` framed JSON-RPC 2.0). Real-time diagnostics from the **full** lexer → parser → sema pipeline with byte-accurate line/column ranges, autocomplete (keywords + every built-in), and hover. Compatible with Neovim, VS Code, Sublime, Emacs, and Helix.
 - **Full toolchain binaries ship everywhere**: `york`, `ypkg`, `york-lsp`, and `yc` are now bundled into the Windows installer, the Windows zip, and both Linux `musl` tarballs (x86_64 + aarch64).
 - **README 14.1 / 14.2**: Complete Package Manager and LSP reference documentation added.
 
 ---
 
-## 1.1.1 â€” Multi-File Imports, HashMap, Result/Option & yc Compiler Driver
+## 1.1.1 — Multi-File Imports, HashMap, Result/Option & yc Compiler Driver
 
 **Major feature release.** Version 1.1.1 eliminates remaining language hurdles with full multi-file module linking (`import "file.yk"`), built-in generic `HashMap<K, V>`, `Result<T, E>` & `Option<T>` safe error handling, the standalone `yc` GCC/Clang-compatible compiler driver, and the sleek futuristic **YORK** wordmark brand identity.
 
@@ -48,7 +36,7 @@ All notable changes to York are tracked here. The site and `release` folder mirr
 
 ---
 
-## 0.5.0 â€” The Integrity & Usability Milestone
+## 0.5.0 — The Integrity & Usability Milestone
 
 **Monumental release.** Version 0.5.0 brings a complete brand identity revamp with the official high-tech York logo, comprehensive security verification and false-positive resolution, first-class uninstallation across all platforms, built-in diagnostic tooling (`york doctor`), real Base64 encoding/decoding, native `assert` & `read_line` runtime implementations, and major ergonomics upgrades.
 
@@ -82,18 +70,18 @@ All notable changes to York are tracked here. The site and `release` folder mirr
 
 ---
 
-## 0.4.0 â€” One Source, Every Target
+## 0.4.0 — One Source, Every Target
 
 **Major release.** The complete mobile framework shipped in 0.3.6 is now the centerpiece of the language story, the README is rewritten as an exhaustive reference manual (v0.4.0), and the toolchain lands its biggest surface area yet.
 
 ### Headline
-- **`york mobile`** â€” one York program â†’ installable PWA + Android project + real signed APK (York's own `aapt2 â†’ javac â†’ d8 â†’ zipalign â†’ apksigner` toolchain, no Gradle/Android Studio/SDK) + complete iOS Xcode project.
-- **Core 12 `York.*` runtime** â€” storage, toast, dialogs, vibrate, geolocation, accelerometer, battery, network, clipboard, share, openUrl, camera. Three transports (Android Java bridge, iOS `WKScriptMessageHandler`, web fallbacks), one API.
-- **Rewrite of README.md** â€” full technical spec & reference manual documenting the verified type system (sized primitives `i8`â€“`i128`, `u8`â€“`u128`, `f16`â€“`f64`), the complete built-in function list, chainable string methods, networking, threading, Win32 GUI, `Arena<T>`, mobile framework, and honest "not-yet-supported" section.
+- **`york mobile`** — one York program → installable PWA + Android project + real signed APK (York's own `aapt2 → javac → d8 → zipalign → apksigner` toolchain, no Gradle/Android Studio/SDK) + complete iOS Xcode project.
+- **Core 12 `York.*` runtime** — storage, toast, dialogs, vibrate, geolocation, accelerometer, battery, network, clipboard, share, openUrl, camera. Three transports (Android Java bridge, iOS `WKScriptMessageHandler`, web fallbacks), one API.
+- **Rewrite of README.md** — full technical spec & reference manual documenting the verified type system (sized primitives `i8`–`i128`, `u8`–`u128`, `f16`–`f64`), the complete built-in function list, chainable string methods, networking, threading, Win32 GUI, `Arena<T>`, mobile framework, and honest "not-yet-supported" section.
 
 ### CLI
 - `york mobile --platform android|ios|both` (default `both`, aliases `apple`/`all`), `--apk`, `--icon`, `--serve`, `--name`, `--out`.
-- `york new-mobile NAME` â€” scaffolds a mobile app project with a demo template.
+- `york new-mobile NAME` — scaffolds a mobile app project with a demo template.
 - npm-style entry auto-detection for `run`/`build`/`check`/`mobile`.
 
 ### Language surface
@@ -102,12 +90,12 @@ All notable changes to York are tracked here. The site and `release` folder mirr
 - Chainable String methods with camelCase + snake_case aliases.
 
 ### Docs & site
-- Site cheat-sheet updated for `york new-mobile` and `york mobile â€¦ --apk`.
+- Site cheat-sheet updated for `york new-mobile` and `york mobile … --apk`.
 - README mirrored to the site repository.
 
 ---
 
-## 0.3.6 â€” Mobile Apps: PWA + Android APK + iOS (`york mobile`)
+## 0.3.6 — Mobile Apps: PWA + Android APK + iOS (`york mobile`)
 
 **Headline:** York apps now ship to phones. One York program produces an installable PWA, an Android project, a real signed APK compiled entirely by York's own toolchain, and a complete iOS Xcode project.
 
@@ -115,7 +103,7 @@ All notable changes to York are tracked here. The site and `release` folder mirr
 
 - `york mobile <app.yk> --out build` wraps the app in an installable **PWA** (manifest, service worker, icons).
 - `--platform android` / `--platform ios` / `--platform both` (default) selects the native shells to generate.
-- `--apk` compiles a **real signed APK** with York's own build pipeline â€” aapt2 â†’ javac â†’ d8 â†’ zipalign â†’ apksigner â€” no Gradle, no Android Studio, no full Android SDK. The first build fetches Google's command-line compilers once (~120 MB) into `~/.york/android`; everything after is offline.
+- `--apk` compiles a **real signed APK** with York's own build pipeline — aapt2 → javac → d8 → zipalign → apksigner — no Gradle, no Android Studio, no full Android SDK. The first build fetches Google's command-line compilers once (~120 MB) into `~/.york/android`; everything after is offline.
 - `york new-mobile NAME` scaffolds a mobile app project.
 
 ### New: `York.*` device runtime (Core 12)
@@ -132,7 +120,7 @@ storage (KV), toast, alert/confirm dialogs, vibration, geolocation, acceleromete
 ### Docs
 
 - README: new section 14 "Mobile Apps: PWA, Android APK & iOS (`york mobile`)" with the full `York.*` API table.
-- Site quickstart cheat-sheet updated: `york new-mobile` + `york mobile â€¦ --apk`.
+- Site quickstart cheat-sheet updated: `york new-mobile` + `york mobile … --apk`.
 
 ### Toolchain
 
@@ -141,6 +129,6 @@ storage (KV), toast, alert/confirm dialogs, vibration, geolocation, acceleromete
 
 ---
 
-## 0.3.5 â€” Git is an Island
+## 0.3.5 — Git is an Island
 
 Initial public release line. (Tracked from 0.3.5 onward; earlier development history is preserved in the git log.)
