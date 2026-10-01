@@ -900,6 +900,16 @@ impl<'a> Parser<'a> {
         let sp = self.peek_span();
         self.advance();
 
+        // Source-file import: `import "util/math.yk";`
+        if let Token::StringLiteral(path) = self.peek_tok().clone() {
+            self.advance();
+            self.expect(&Token::Semicolon, "`;` to close file import");
+            return Some(Spanned::new(
+                Item::Import(ImportDecl { path: Vec::new(), aliases: Vec::new(), file: Some(path) }),
+                sp,
+            ));
+        }
+
         let mut path = Vec::new();
         let Some(first) = self.expect_ident("module path") else { return None };
         path.push(first);
@@ -927,7 +937,7 @@ impl<'a> Parser<'a> {
         }
 
         if self.at(&Token::Semicolon) { self.advance(); }
-        Some(Spanned::new(Item::Import(ImportDecl { path, aliases }), sp))
+        Some(Spanned::new(Item::Import(ImportDecl { path, aliases, file: None }), sp))
     }
 
     fn parse_const_item(&mut self, visibility: Visibility) -> Option<Spanned<Item>> {

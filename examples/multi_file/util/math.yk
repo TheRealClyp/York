@@ -1,0 +1,14 @@
+// Imported by main.yk. Brings in its own dependency, resolved transitively.
+import "extra.yk";
+
+int square(int n) {
+    return n * n;
+}
+
+int sum_to(int n) {
+    int total = 0;
+    for (int i = 1; i <= n; i = i + 1) {
+        total = total + i;
+    }
+    return total;
+}

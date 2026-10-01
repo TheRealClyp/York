@@ -1,0 +1,4 @@
+// Imported by main.yk. Imported files need no `main` of their own.
+void banner() {
+    println("--- multi-file demo ---");
+}

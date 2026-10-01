@@ -786,15 +786,43 @@ The GUI functions compile everywhere (no-op stubs off Windows); networking and t
 - **Tuples**, **`match` expressions**, **closures/lambdas**.
 - **Explicit casts** and **`sizeof`/`alignof`**.
 - **Tagged/payload enum variants** — only unit variants compile to plain C enums.
-- **Multi-File Module Linking (`import "file.yk"`)** — Fully supported in v1.1.2; organize and modularize larger codebases across multiple source files effortlessly.
-- **Built-in Generic `HashMap<K, V>` & Sum Types** — Out-of-the-box key-value dictionaries and `Result<T, E>` / `Option<T>` error handling primitives.
+- **Built-in Generic `HashMap<K, V>` & Sum Types** — out-of-the-box key-value dictionaries and `Result<T, E>` / `Option<T>` error handling primitives (planned; use `Arena<T>` + linear scan today).
 - **Custom `yc` Systems Compiler Driver** — Standalone GCC/Clang-compatible compiler driver with full optimization flags (`-O2`, `-O3`).
 - **Wasm backend** — `york_codegen_wasm` / `york_web` are stubs; the web path today is `york mobile` producing a PWA from native code, not a compiled-to-Wasm toolchain.
 - **Public package registry** — `ypkg publish` validates packages today; a hosted registry + `ypkg install <pkg>` remote fetch is on the roadmap.
 
+### Working Today:
+- **Multi-File Module Linking (`import "file.yk"`)** — fully supported since v1.1.3. Paths resolve relative to the importing file, nest transitively, and are cycle-safe. See §18.1.
+
 ---
 
 ## 18. Exhaustive Code Examples & Recipes
+
+### Recipe 0: Multi-File Projects (`import "file.yk"`)
+Split a project across files. The path is resolved **relative to the file doing the importing**, imports nest transitively, and cycles are handled safely (each file loads at most once). Imported files need no `main` of their own.
+
+```java
+// main.yk
+import "util/math.yk";     // loads util/math.yk
+import "util/text.yk";     // loads util/text.yk
+
+public static void main(String[] args) {
+    banner();               // from util/text.yk
+    println(square(7));     // 49   — from util/math.yk
+    println(triple(4));     // 12   — from util/extra.yk, via util/math.yk
+}
+```
+```java
+// util/math.yk
+import "extra.yk";         // resolved relative to util/, not to the project root
+int square(int n) { return n * n; }
+```
+```java
+// util/text.yk
+void banner() { println("--- multi-file demo ---"); }
+```
+
+Runnable example: `examples/multi_file/` — `york run examples/multi_file/main.yk`.
 
 ### Recipe A: High-Performance Data Processing
 ```java

@@ -1,0 +1,4 @@
+// Imported transitively by util/math.yk, never named in main.yk.
+int triple(int n) {
+    return n * 3;
+}

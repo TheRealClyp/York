@@ -13,6 +13,7 @@ york_lexer = { workspace = true }
 york_parser = { workspace = true }
 york_sema = { workspace = true }
 york_codegen_c = { workspace = true }
+york_ast = { workspace = true }
 clap = { workspace = true }
 colored = { workspace = true }
 anyhow = { workspace = true }

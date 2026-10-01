@@ -205,6 +205,8 @@ pub struct TraitMethod {
 pub struct ImportDecl {
     pub path: Vec<Spanned<String>>,
     pub aliases: Vec<ImportAlias>,
+    /// Source-file import: `import "util/math.yk";`
+    pub file: Option<String>,
 }
 
 #[derive(Debug, Clone)]

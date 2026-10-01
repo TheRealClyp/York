@@ -1,29 +1,97 @@
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::process;
 
 use anyhow::{bail, Context, Result};
 use colored::Colorize;
 
-/// Compile a .yk file to C source.
-pub fn compile_to_c(file: &Path) -> Result<String> {
+use york_ast::Item;
+
+/// Lex + parse a source file, reporting errors with its path.
+fn parse_file(file: &Path) -> Result<york_ast::Program> {
     let source = std::fs::read_to_string(file)
         .with_context(|| format!("cannot read `{}`", file.display()))?;
 
     let lexed = york_lexer::lex(&source);
     if !lexed.errors.is_empty() {
         for e in &lexed.errors {
-            eprintln!("{} {e}", "error:".red().bold());
+            eprintln!("{} {}: {e}", "error:".red().bold(), file.display());
         }
-        bail!("lexer failed with {} error(s)", lexed.errors.len());
+        bail!("lexer failed with {} error(s) in `{}`", lexed.errors.len(), file.display());
     }
     let parsed = york_parser::parse(&lexed.tokens);
     if !parsed.errors.is_empty() {
         for e in &parsed.errors {
-            eprintln!("{} {e}", "error:".red().bold());
+            eprintln!("{} {}: {e}", "error:".red().bold(), file.display());
         }
-        bail!("parser failed with {} error(s)", parsed.errors.len());
+        bail!("parser failed with {} error(s) in `{}`", parsed.errors.len(), file.display());
     }
-    let sema = york_sema::analyze(&parsed.program);
+    Ok(parsed.program)
+}
+
+/// Resolve `import "path.yk";` declarations into a flat program.
+///
+/// Each imported file is loaded relative to the file that imports it, parsed
+/// recursively, and its items are merged into the returned program. Imported
+/// files are never required to declare `main`. Loading is cycle-safe: every
+/// file is parsed at most once, tracked by its canonical path.
+fn resolve_imports(
+    program: york_ast::Program,
+    importer: &Path,
+    visited: &mut HashSet<PathBuf>,
+) -> Result<york_ast::Program> {
+    let base = importer.parent().unwrap_or_else(|| Path::new(".")).to_path_buf();
+    let mut items = Vec::new();
+
+    for spanned in program.items {
+        match &spanned.node {
+            Item::Import(decl) if decl.file.is_some() => {
+                let raw = decl.file.as_deref().unwrap_or_default();
+                let candidate = base.join(raw);
+
+                let resolved = if candidate.is_file() {
+                    candidate
+                } else {
+                    // Tolerate `./util.yk` vs `util` vs `util.yk` mismatch.
+                    let with_ext = base.join(format!("{raw}.yk"));
+                    if with_ext.is_file() { with_ext } else { candidate }
+                };
+                if !resolved.is_file() {
+                    bail!(
+                        "{} cannot find imported file `{}` (looked in `{}`)",
+                        "error:".red().bold(),
+                        raw,
+                        base.display()
+                    );
+                }
+
+                let key = std::fs::canonicalize(&resolved).unwrap_or(resolved.clone());
+                if !visited.insert(key) {
+                    continue; // already loaded (or a cycle) — skip
+                }
+
+                let sub = parse_file(&resolved)?;
+                let merged = resolve_imports(sub, &resolved, visited)?;
+                items.extend(merged.items);
+            }
+            other => items.push(york_ast::Spanned::new(other.clone(), spanned.span)),
+        }
+    }
+
+    Ok(york_ast::Program { items })
+}
+
+/// Compile a .yk file to C source.
+pub fn compile_to_c(file: &Path) -> Result<String> {
+    let program = parse_file(file)?;
+
+    let mut visited = HashSet::new();
+    visited.insert(
+        std::fs::canonicalize(file).unwrap_or_else(|_| file.to_path_buf()),
+    );
+    let program = resolve_imports(program, file, &mut visited)?;
+
+    let sema = york_sema::analyze(&program);
     if !sema.errors.is_empty() {
         for e in &sema.errors {
             eprintln!("{} {e}", "error:".red().bold());

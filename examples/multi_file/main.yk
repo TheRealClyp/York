@@ -1,0 +1,20 @@
+// Demo: multi-file imports.
+// `import "path.yk";` loads another source file, relative to the importer,
+// and merges its items into this program. Recursive and cycle-safe.
+
+import "util/math.yk";
+import "util/text.yk";
+
+public static void main(String[] args) {
+    banner();
+
+    // from util/math.yk
+    println(square(7));
+    println(sum_to(10));
+
+    // from util/extra.yk — reached transitively via util/math.yk
+    println(triple(4));
+
+    // from util/text.yk
+    println(42);
+}

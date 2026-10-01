@@ -786,6 +786,7 @@ dependencies = [
  "colored",
  "embed-resource",
  "notify",
+ "york_ast",
  "york_codegen_c",
  "york_lexer",
  "york_parser",

@@ -320,6 +320,11 @@ impl SemaCtx {
                     }
                 }
                 Item::Import(imp) => {
+                    // Source-file imports are resolved (and their items merged)
+                    // by the driver before analysis; nothing to lower here.
+                    if imp.file.is_some() {
+                        continue;
+                    }
                     let path = imp.path.iter().map(|s| s.node.as_str()).collect::<Vec<_>>().join(".");
                     items.push(hir::Item::Import(path));
                 }
