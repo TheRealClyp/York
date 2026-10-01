@@ -229,6 +229,15 @@ fn spawn_sidecar(name: &str, args: &[String]) -> Result<()> {
 }
 
 fn cmd_pkg(args: &[String]) -> Result<()> {
+    // Built-in addon packages handled directly by `york` (they need native tooling).
+    let is_addon = matches!(
+        (args.first().map(|s| s.as_str()), args.get(1).map(|s| s.as_str())),
+        (Some("add") | Some("install"), Some(pkg)) if pkg == "android-toolchain" || pkg == "android"
+    );
+    if is_addon {
+        crate::android_build::install_toolchain()?;
+        return Ok(());
+    }
     spawn_sidecar("ypkg", args)
 }
 

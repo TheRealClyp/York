@@ -134,7 +134,7 @@ York compiles directly to optimized C11 code with **zero runtime overhead**: no 
 - **Zero Runtime Overhead.** No VM, no GC, no interpreter.
 - **Direct Native Integration.** First-class access to system APIs — Win32 windows and controls, BSD/Winsock sockets, real OS threads.
 - **Predictable Performance.** Contiguous memory arenas (`Arena<T>`) give zero-fragmentation allocation for real-time simulations, games, and high-throughput servers.
-- **Owned mobile toolchain.** `york mobile --apk` drives `aapt2 → javac → d8 → zipalign → apksigner` itself — the only dependency is a one-time ~120 MB fetch of Google's command-line compilers into `~/.york/android`.
+- **Owned mobile toolchain.** `york mobile --apk` drives `aapt2 → javac → d8 → zipalign → apksigner` itself — the only dependency is the optional **Android Addon** (`york pkg add android-toolchain`, a one-time ~120 MB fetch of Google's command-line compilers into `~/.york/android`).
 
 ### What York Does NOT Have (And What It Uses Instead)
 
@@ -678,7 +678,7 @@ York ships a complete, **self-owned mobile toolchain**. A single York program th
 
 - an **installable PWA** (manifest + service worker + icons) for any phone's home screen,
 - an **Android project** you can open in Android Studio,
-- a **real, signed `.apk`** compiled by York alone — no Gradle, no Android Studio, no full SDK (first build fetches Google's command-line compilers once, ~120 MB, into `~/.york/android`, then York drives `aapt2 → javac → d8 → zipalign → apksigner` itself), and
+- a **real, signed `.apk`** compiled by York alone — no Gradle, no Android Studio, no full SDK (requires the optional **Android Addon** — `york pkg add android-toolchain`, ~120 MB one-time into `~/.york/android` — then York drives `aapt2 → javac → d8 → zipalign → apksigner` itself), and
 - a complete **iOS Xcode project** (WKWebView shell + Swift bridge) to open on a Mac.
 
 ```bash
@@ -700,9 +700,24 @@ The program writes the UI with `write_file` / `append_file` (see the scaffolded 
 | `--platform android` | Generate only the Android shell |
 | `--platform ios` (alias `apple`) | Generate only the iOS Xcode project |
 | `--platform both` (alias `all`, default) | Generate both shells |
-| `--apk` | Also compile a real, signed `.apk` with York's own toolchain |
+| `--apk` | Also compile a real, signed `.apk` with York's own toolchain (requires the **Android Addon**, see below) |
 | `--icon <file.svg>` | Custom web app icon |
 | `--serve` | Serve the web app on `0.0.0.0:8787` for on-phone preview |
+
+### 15.1 Android Addon — downloaded separately (like Android Studio)
+
+The Android build compilers are an **optional addon**, never bundled with the York language installer. Installing it is one command — or download the addon script directly from the [website](https://york-lang.org) or [GitHub releases](https://github.com/TheRealClyp/York/releases) (assets `android-addon.ps1` for Windows, `android-addon.sh` for Linux/macOS).
+
+```bash
+york pkg add android-toolchain   # ~120 MB one-time into ~/.york/android
+# or, without installing York first:
+irm https://raw.githubusercontent.com/TheRealClyp/York/main/installers/android-addon.ps1 | iex    # Windows
+curl -fsSL https://raw.githubusercontent.com/TheRealClyp/York/main/installers/android-addon.sh | sh  # Linux/macOS
+```
+
+What it fetches (from Google's command-line repository): `aapt2`, `d8.jar`, `apksigner`, `zipalign` and `platform-34/android.jar`, plus a one-time local `debug.keystore` (requires a JDK on PATH). After install, `york mobile app.yk --apk` (with `--platform android` or `both`) drives `aapt2 → javac → d8 → zipalign → apksigner` itself and produces a signed `build/apk/app-debug.apk`.
+
+> If you run `--apk` without the addon, York prints the exact install command instead of silently downloading.
 
 ### The `York.*` Device Runtime — Core 12
 

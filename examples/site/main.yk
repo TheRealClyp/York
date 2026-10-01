@@ -1125,6 +1125,16 @@ public static void install() {
     line("<tr><td><b>CHANGELOG.md</b></td><td>What changed in each York release</td><td class='sz'>—</td><td><div class='cardwrap'><a class='mini' href='CHANGELOG.md'>View</a></div></td></tr>");
     line("<tr><td><b>GitHub Releases</b></td><td>Binaries, checksums, and release notes</td><td class='sz'>—</td><td><div class='cardwrap'><a class='mini' href='https://github.com/TheRealClyp/York/releases'>Open</a></div></td></tr>");
     line("</table>");
+    line("<div style='height:22px'></div>");
+    line("<h3>Android Addon <span class='tag'>optional</span></h3>");
+    line("<p class='note'>York produces real signed <b>.apk</b> files itself. The Android compiler tools are an <b>optional addon</b> — like Android Studio — downloaded <b>separately</b>, never bundled with the language. One-time ~120&nbsp;MB into <code class='inline'>~/.york/android</code>.</p>");
+    line("<div class='cmdrow'><pre>york pkg add android-toolchain</pre><button class='copy' type='button'>copy</button></div>");
+    line("<table class='dltable'>");
+    line("<tr><th>Artifact</th><th>Why you want it</th><th>Size</th><th></th></tr>");
+    line("<tr><td><b>android-addon.ps1</b></td><td>Fetches aapt2, d8, zipalign, apksigner + android.jar on Windows<span class='sub'>run from PowerShell</span></td><td class='sz'>~ 120 MB</td><td><div class='cardwrap'><a class='mini' href='downloads/android-addon.ps1'>Download</a></div></td></tr>");
+    line("<tr><td><b>android-addon.sh</b></td><td>Same addon for Linux &amp; macOS<span class='sub'>curl • pipe • sh</span></td><td class='sz'>~ 120 MB</td><td><div class='cardwrap'><a class='mini' href='downloads/android-addon.sh'>Download</a></div></td></tr>");
+    line("</table>");
+    line("<p class='note'>Requires a JDK on your PATH for one-time signing-key generation. Then: <code class='inline'>york mobile app.yk --apk</code> gives you a signed APK.</p>");
     line("</div>");
     line("<p class='sha'>Every artifact is signed and verified against its <a href='downloads/SHASUMS256.txt'>SHA-256 checksums</a> — served directly from this site, no mirrors.</p>");
     line("</section>");

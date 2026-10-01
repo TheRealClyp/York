@@ -2,6 +2,17 @@
 
 All notable changes to York are tracked here. The site and `release` folder mirror this file.
 
+## 1.1.3 — Android Addon (downloaded separately, like Android Studio)
+
+**Toolchain separation.** The Android build compilers are now an **optional addon**, not part of the language. Like installing Android Studio, you fetch it explicitly:
+
+- **`york pkg add android-toolchain`** — one-time ~120 MB install into `~/.york/android` (aapt2, d8, zipalign, apksigner, `platform-34/android.jar`, local `debug.keystore`).
+- **Standalone addon scripts** published on the website and GitHub releases: `android-addon.ps1` (Windows) and `android-addon.sh` (Linux/macOS).
+- **No silent downloads**: `york mobile --apk` now errors with the exact install command when the addon is missing instead of fetching behind the scenes.
+- Website gained an **Android Addon** download section; README §15.1 documents the addon model.
+
+---
+
 ## 1.1.2 — Package Manager (`ypkg`) & Language Server (`york-lsp`)
 
 **Ecosystem milestone.** Version 1.1.2 closes the two gaps from the architecture review that block a perfect **5.0** rating — a package manager and official LSP support:

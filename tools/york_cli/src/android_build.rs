@@ -85,8 +85,19 @@ fn needs_download(zip_path: &Path, _url: &str, min_bytes: u64) -> bool {
     true
 }
 
-/// Make sure the toolchain + android.jar are cached; download on first use.
-pub fn ensure_toolchain() -> anyhow::Result<()> {
+/// Whether the Android Addon toolchain is already installed in the cache.
+pub fn toolchain_installed() -> bool {
+    tool_dir().join("aapt2.exe").exists() && platform_jar().exists()
+}
+
+/// Install the **York Android Addon** explicitly.
+///
+/// This is *not* automatic: the addon is downloaded on demand — exactly like
+/// installing Android Studio — from the website / GitHub / `york pkg add
+/// android-toolchain`. It fetches the small Google command-line compilers
+/// once into ~/.york/android (aapt2, d8, zipalign, apksigner) plus
+/// android.jar, and creates a local debug keystore.
+pub fn install_toolchain() -> anyhow::Result<()> {
     let dir = cache_dir();
     std::fs::create_dir_all(&dir).context("york toolchain dir")?;
 
@@ -99,7 +110,10 @@ pub fn ensure_toolchain() -> anyhow::Result<()> {
 
     if !tools_marker.exists() {
         if need_bt {
-            println!("{} York Android compiler tools (one-time ~60MB) ...", "fetching:".green().bold());
+            println!(
+                "{} York Android Addon — Android compiler tools (~60MB from Google) ...",
+                "addon:".cyan().bold()
+            );
             curl(BUILD_TOOLS_URL, &bt_zip)?;
         }
         let tmp = dir.join("bt_extract");
@@ -116,7 +130,10 @@ pub fn ensure_toolchain() -> anyhow::Result<()> {
 
     if !platform_jar().exists() {
         if need_pl {
-            println!("{} Android platform android.jar (one-time ~60MB) ...", "fetching:".green().bold());
+            println!(
+                "{} York Android Addon — platform android.jar (~60MB from Google) ...",
+                "addon:".cyan().bold()
+            );
             curl(PLATFORM_URL, &pl_zip)?;
         }
         let tmp = dir.join("pl_extract");
@@ -162,6 +179,10 @@ pub fn ensure_toolchain() -> anyhow::Result<()> {
     let _ = std::fs::remove_file(&bt_zip);
     let _ = std::fs::remove_file(&pl_zip);
 
+    println!(
+        "{} York Android Addon installed — `york mobile app.yk --apk` is now ready.",
+        "done:".green().bold()
+    );
     Ok(())
 }
 
@@ -187,7 +208,14 @@ fn extract_zip(zip_path: &Path, dest: &Path) -> anyhow::Result<()> {
 ///
 /// Produces `out/app-debug.apk`.
 pub fn build_apk(_app_name: &str, proj: &Path, out: &Path) -> anyhow::Result<()> {
-    ensure_toolchain()?;
+    if !toolchain_installed() {
+        bail!(
+            "{} the York Android Addon is not installed.\n  Install it from: {}  or:\n  {}   ← downloads aapt2, d8, zipalign, apksigner + android.jar (~120MB, one-time)",
+            "error:".red().bold(),
+            "https://york-lang.org/android".cyan().underline(),
+            "york pkg add android-toolchain".green().bold()
+        );
+    }
     std::fs::create_dir_all(out)?;
 
     let bt = tool_dir();
