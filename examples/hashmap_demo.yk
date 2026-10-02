@@ -1,0 +1,73 @@
+// Demo: built-in generic HashMap<K, V>.
+// Open addressing with linear probing, zero-overhead — it compiles to a plain
+// C struct with no boxing and no per-entry allocation.
+
+public static void main(String[] args) {
+    // ── string keys ────────────────────────────────────────────
+    HashMap<string, int> ages = new HashMap<string, int>();
+    ages.put("ana", 31);
+    ages.put("bo", 24);
+    ages.put("cy", 45);
+
+    println(ages.count());            // 3
+    println(ages.get("bo"));          // 24
+    println(ages.contains("cy"));     // 1  (true)
+    println(ages.contains("zz"));     // 0  (false)
+    println(ages.get("missing"));     // 0   (zero value)
+    println(ages.get_or("missing", -1)); // -1 (explicit fallback)
+
+    ages.put("bo", 25);               // overwrite, count unchanged
+    println(ages.get("bo"));          // 25
+    println(ages.count());            // 3
+
+    println(ages.remove("ana"));      // 1  (true)
+    println(ages.count());            // 2
+    println(ages.remove("ana"));      // 0  (already gone)
+
+    // ── integer keys ───────────────────────────────────────────
+    HashMap<int, string> ports = new HashMap<int, string>();
+    ports.put(80, "http");
+    ports.put(443, "https");
+    ports.put(8080, "alt");
+
+    println(ports.get(443));          // https
+    println(ports.count());           // 3
+    if (ports.contains(22)) {
+        println("unexpected");
+    } else {
+        println("22 is unmapped");   // 22 is unmapped
+    }
+
+    // ── grows correctly past the initial load factor ───────────
+    HashMap<int, int> squares = new HashMap<int, int>();
+    for (int i = 0; i < 200; i = i + 1) {
+        squares.put(i, i * i);
+    }
+    println(squares.count());         // 200
+    println(squares.get(199));        // 39601
+    println(squares.get(0));          // 0
+    println(squares.contains(150));   // 1  (true)
+    println(squares.contains(500));   // 0  (false)
+
+    // every key must still be findable after all those rehashes
+    int ok = 0;
+    for (int i = 0; i < 200; i = i + 1) {
+        if (squares.get(i) == i * i) {
+            ok = ok + 1;
+        }
+    }
+    println(ok);                      // 200
+
+    // ── maps as struct fields + free ───────────────────────────
+    Registry r = new Registry();
+    r.sessions.put("s-1", 100);
+    r.sessions.put("s-2", 250);
+    println(r.sessions.count());      // 2
+    println(r.sessions.get("s-2"));   // 250
+
+    println("hashmap ok");
+}
+
+struct Registry {
+    HashMap<string, int> sessions;
+}

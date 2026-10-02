@@ -77,6 +77,16 @@ impl SemaCtx {
                     } else {
                         Ty::Arena(Box::new(Ty::Inferred))
                     }
+                } else if base_name == "HashMap" || base_name == "hashmap" || base_name == "Map" {
+                    let k = args
+                        .first()
+                        .map(|a| self.resolve_type(&a.node))
+                        .unwrap_or(Ty::Inferred);
+                    let v = args
+                        .get(1)
+                        .map(|a| self.resolve_type(&a.node))
+                        .unwrap_or(Ty::Inferred);
+                    Ty::HashMap(Box::new(k), Box::new(v))
                 } else {
                     let mut generic = base_name.to_string();
                     for a in args {
@@ -198,6 +208,7 @@ impl SemaCtx {
         match self_type {
             Ty::Struct(name) => format!("{}_{}", name, method),
             Ty::Arena(elem) => format!("Arena_{}_{}", elem.tag(), method),
+            Ty::HashMap(k, v) => format!("HashMap_{}_{}_{}", k.tag(), v.tag(), method),
             _ => method.to_string(),
         }
     }
@@ -1045,6 +1056,12 @@ impl SemaCtx {
             AstExpr::New { ty, args } => {
                 let struct_name = match &ty.node {
                     TypeAnnotation::Named(p) => p.segments.last().map(|s| s.node.clone()).unwrap_or_default(),
+                    // `new HashMap<string, int>()` — keep the generic base name so the
+                    // backend can recognise the built-in collection constructor.
+                    TypeAnnotation::Generic { base, .. } => {
+                        base.segments.last().map(|s| s.node.clone()).unwrap_or_default()
+                    }
+                    TypeAnnotation::Arena(_) => "Arena".into(),
                     _ => "Unknown".into(),
                 };
                 let default_fields = self.tables.structs.get(&struct_name)
@@ -1274,6 +1291,15 @@ impl SemaCtx {
                             "len" | "length" | "count" => Some(Ty::I64),
                             "get" | "at" => Some((*inner).clone()),
                             _ => self.tables.functions.get(resolved).map(|f| f.return_ty.clone()),
+                        };
+                    }
+                    if let Ty::HashMap(_k, v) = recv_ty {
+                        return match method.as_str() {
+                            "get" | "get_or" | "getOr" | "remove" | "removeKey" => Some((*v).clone()),
+                            "count" | "len" | "length" | "size" => Some(Ty::I64),
+                            "contains" | "containsKey" | "contains_key" | "isEmpty" | "is_empty"
+                            | "has" => Some(Ty::Bool),
+                            _ => Some(Ty::Void),
                         };
                     }
                 }

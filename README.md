@@ -274,6 +274,39 @@ York ships built-in `Arena<T>` buffers for high-performance memory management wi
 
 ---
 
+## 5.1 Hash Maps (`HashMap<K, V>`)
+
+York ships a built-in generic hash map. It compiles to a plain C struct with open addressing and linear probing — **no boxing, no virtual dispatch, no allocation per entry**. The table doubles and rehashes itself when the load factor passes 70%, so amortised insert is O(1).
+
+```java
+HashMap<string, int> ages = new HashMap<string, int>();
+ages.put("ana", 31);
+ages.put("bo", 24);
+println(ages.get("bo"));                 // 24
+println(ages.contains("ana"));            // 1 (true)
+println(ages.get_or("zz", -1));            // -1 (explicit fallback)
+```
+
+### HashMap Operations
+| Method | Semantics |
+| :--- | :--- |
+| `HashMap<K, V> m = new HashMap<K, V>();` | Creates an empty map (a bare `HashMap<K, V> m;` also works) |
+| `m.put(key, value)` | Inserts, or overwrites an existing key (count unchanged on overwrite) |
+| `m.get(key)` | The value for `key`, or the **zero value** of `V` when absent |
+| `m.get_or(key, fallback)` | The value for `key`, or `fallback` when absent |
+| `m.contains(key)` | Whether the key is present (also `.contains_key()`) |
+| `m.remove(key)` | Removes the entry; returns whether it was there |
+| `m.count()` | Number of live entries (also `.len()` / `.size()`) |
+| `m.is_empty()` | Whether the map holds no entries |
+| `m.clear()` | Drops all entries, keeps the table |
+| `m.free()` | Releases the backing arrays (optional — matches York's no-GC style) |
+
+`K` and `V` may be primitives, strings, structs, enums, or other collections. Keys hash by value (integers get an avalanche mix, strings use FNV-1a, aggregates hash their object representation) and compare with `==` / `strcmp` / `memcmp` as appropriate. Maps can be struct fields, function parameters, and locals.
+
+Runnable example: `examples/hashmap_demo.yk` — `york run examples/hashmap_demo.yk`.
+
+---
+
 ## 6. Control Flow & Branching Constructs
 
 ```java
@@ -786,13 +819,14 @@ The GUI functions compile everywhere (no-op stubs off Windows); networking and t
 - **Tuples**, **`match` expressions**, **closures/lambdas**.
 - **Explicit casts** and **`sizeof`/`alignof`**.
 - **Tagged/payload enum variants** — only unit variants compile to plain C enums.
-- **Built-in Generic `HashMap<K, V>` & Sum Types** — out-of-the-box key-value dictionaries and `Result<T, E>` / `Option<T>` error handling primitives (planned; use `Arena<T>` + linear scan today).
+- **`Result<T, E>` / `Option<T>` sum types** — planned; error handling today is `assert` plus explicit zero-value checks (see `m.get_or(key, fallback)` for the same effect on maps).
 - **Custom `yc` Systems Compiler Driver** — Standalone GCC/Clang-compatible compiler driver with full optimization flags (`-O2`, `-O3`).
 - **Wasm backend** — `york_codegen_wasm` / `york_web` are stubs; the web path today is `york mobile` producing a PWA from native code, not a compiled-to-Wasm toolchain.
 - **Public package registry** — `ypkg publish` validates packages today; a hosted registry + `ypkg install <pkg>` remote fetch is on the roadmap.
 
 ### Working Today:
 - **Multi-File Module Linking (`import "file.yk"`)** — fully supported since v1.1.3. Paths resolve relative to the importing file, nest transitively, and are cycle-safe. See §18.1.
+- **Built-in Generic `HashMap<K, V>`** — zero-overhead open-addressing maps for any key/value pair. See §5.1.
 
 ---
 

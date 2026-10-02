@@ -2,6 +2,22 @@
 
 All notable changes to York are tracked here. The site and `release` folder mirror this file.
 
+## 1.1.4 — Multi-File Imports & Built-in `HashMap<K, V>`
+
+Two previously-advertised language features are now **actually implemented**, plus runnable examples and regression tests for each.
+
+- **Multi-File Module Linking** — `import "path/to/file.yk";` is real. Paths resolve **relative to the importing file** (not the project root), imports nest **transitively**, and loading is **cycle-safe** — every file is parsed at most once, tracked by canonical path, so import diamonds and cycles work. Imported files need no `main`. A missing import reports the file it looked for and the directory it searched.
+  - Example: `examples/multi_file/` (`york run examples/multi_file/main.yk`)
+  - Tests: `crates/york_parser/tests/file_imports.rs`
+- **Built-in Generic `HashMap<K, V>`** — open addressing with linear probing, compiled to a plain C struct: no boxing, no per-entry allocation, O(1) amortised put with grow-and-rehash at a 70% load factor. Keys hash by value (avalanache mix for integers, FNV-1a for strings, byte hash for aggregates) and compare with `==`/`strcmp`/`memcmp`.
+  - Methods: `put`, `get`, `get_or`, `contains`, `remove`, `count`, `is_empty`, `clear`, `free`. Maps work as locals, struct fields, and parameters; keys/values may be primitives, strings, structs, enums, or collections.
+  - A missing key returns the zero value of `V` — and for `string` that is `""`, never `NULL`, so `printf("%s", …)` stays defined.
+  - Example: `examples/hashmap_demo.yk`
+  - Tests: `crates/york_codegen_c/tests/hashmap.rs`
+- **Docs corrected** — README claims now match the implementation: multi-file imports and `HashMap` moved into "Working Today"; `Result<T,E>`/`Option<T>` explicitly marked *planned* rather than supported.
+
+---
+
 ## 1.1.3 — Android Addon (downloaded separately, like Android Studio)
 
 **Toolchain separation.** The Android build compilers are now an **optional addon**, not part of the language. Like installing Android Studio, you fetch it explicitly:

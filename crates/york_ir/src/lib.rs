@@ -31,6 +31,8 @@ pub enum Ty {
     Struct(String),
     /// An arena / bump-allocator with typed elements.
     Arena(Box<Ty>),
+    /// A built-in open-addressing hash map: HashMap<K, V>
+    HashMap(Box<Ty>, Box<Ty>),
     /// Slices: T[]
     Slice(Box<Ty>),
     /// An enum, referenced by name.
@@ -85,6 +87,7 @@ impl std::fmt::Display for Ty {
             Ty::Struct(name) => write!(f, "{name}"),
             Ty::Enum(name) => write!(f, "{name}"),
             Ty::Arena(inner) => write!(f, "Arena<{inner}>"),
+            Ty::HashMap(k, v) => write!(f, "HashMap<{k}, {v}>"),
             Ty::Slice(inner) => write!(f, "{inner}[]"),
             Ty::Inferred => write!(f, "_"),
         }
@@ -123,6 +126,7 @@ impl Ty {
             Ty::U8 | Ty::U16 | Ty::U32 | Ty::U64 | Ty::U128 => "0".into(),
             Ty::F32 | Ty::F64 => "0.0".into(),
             Ty::Struct(_) | Ty::Slice(_) | Ty::Enum(_) | Ty::Inferred | Ty::Arena(_) => "{}".into(),
+            Ty::HashMap(_, _) => "{ (void*)0, (void*)0, 0, 0 }".into(),
         }
     }
 
@@ -132,6 +136,7 @@ impl Ty {
             Ty::Struct(name) => name.clone(),
             Ty::Enum(name) => name.clone(),
             Ty::Arena(inner) => format!("Arena{}", inner.tag()),
+            Ty::HashMap(k, v) => format!("HashMap{}To{}", k.tag(), v.tag()),
             Ty::Slice(inner) => format!("Sl{}", inner.tag()),
             Ty::Str => "Str".into(),
             Ty::Bool => "Bool".into(),

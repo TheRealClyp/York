@@ -30,6 +30,7 @@ impl CGen {
             Ty::Struct(name) => name.clone(),
             Ty::Enum(name) => name.clone(),
             Ty::Arena(inner) => format!("Arena{}", self.tag(inner)),
+            Ty::HashMap(k, v) => format!("HashMap{}To{}", self.tag(k), self.tag(v)),
             Ty::Slice(inner) => format!("Sl{}", self.tag(inner)),
             Ty::Str => "Str".into(),
             Ty::Bool => "Bool".into(),
@@ -72,6 +73,7 @@ impl CGen {
             Ty::Struct(name) => name.clone(),
             Ty::Enum(name) => name.clone(),
             Ty::Arena(inner) => format!("Arena_{}", self.tag(inner)),
+            Ty::HashMap(k, v) => format!("HashMap_{}_{}", self.tag(k), self.tag(v)),
             Ty::Slice(inner) => format!("{}*", self.c_type(inner)),
             Ty::Inferred => "int".into(),
         }
@@ -80,6 +82,7 @@ impl CGen {
     fn default_init(&self, ty: &Ty) -> String {
         match ty {
             Ty::Arena(_) => "{ (void*)0, 0, 0 }".into(),
+            Ty::HashMap(_, _) => "{ (void*)0, (void*)0, 0, 0 }".into(),
             Ty::Struct(_) => "{0}".into(),
             Ty::Enum(name) => format!("({name})0"),
             Ty::Str => "\"\"".into(),
@@ -176,8 +179,9 @@ impl CGen {
                 format!("({}){{{}}}", struct_name, parts.join(", "))
             }
             hir::Expr::New { struct_name, args, .. } => {
-                // `new Arena(n)` handled at the VarDecl site; here emit generic slot init.
-                if struct_name == "Arena" {
+                // `new Arena(n)` / `new HashMap<K,V>()` are handled at the VarDecl
+                // site; here emit a generic slot init.
+                if struct_name == "Arena" || struct_name == "HashMap" {
                     "((void)0)".to_string()
                 } else {
                     let arg_strs = args.iter().map(|a| self.expr(a)).collect::<Vec<_>>().join(", ");
@@ -1074,6 +1078,18 @@ pub fn generate(program: &Program) -> String {
     }
     g.line("");
 
+    // HashMap typedefs, same ordering rule: a struct field may hold a
+    // `HashMap<K, V>` value, so the map type must be complete first.
+    for (k, v) in hashmap_types(program) {
+        let kt = g.c_type(&k);
+        let vt = g.c_type(&v);
+        let map_ty = g.c_type(&Ty::HashMap(Box::new(k.clone()), Box::new(v.clone())));
+        g.line(&format!(
+            "typedef struct {{ {kt}* keys; {vt}* vals; size_t len; size_t cap; size_t* used; }} {map_ty};"
+        ));
+    }
+    g.line("");
+
     // Struct definitions now that arena element types and all struct names are known.
     for item in &program.items {
         if let hir::Item::Struct(s) = item {
@@ -1089,6 +1105,9 @@ pub fn generate(program: &Program) -> String {
 
     // Arena helper functions for every distinct arena element type.
     emit_arena_helpers(&mut g, program);
+
+    // HashMap runtime for every distinct key/value instantiation.
+    emit_hashmap_helpers(&mut g, program);
 
     // Forward declarations, then bodies.
     let fns: Vec<(hir::FnDef, bool)> = program
@@ -1249,11 +1268,20 @@ impl CGen {
                         self.line(&format!("{c_type}_init(&{name}, {cap});"));
                         return;
                     }
+                    // `HashMap<K, V> m = new HashMap<K, V>();`
+                    if struct_name == "HashMap" && matches!(ty, Ty::HashMap(_, _)) {
+                        self.line(&format!("{kw}{c_type} {name};"));
+                        self.line(&format!("{c_type}_init(&{name});"));
+                        return;
+                    }
                 }
                 match init {
                     Some(init) => {
                         let rhs = self.expr(init);
-                        if rhs == "((void)0)" && matches!(self.c_type(ty).as_str(), s if s.starts_with("Arena_")) {
+                        if rhs == "((void)0)"
+                            && (matches!(self.c_type(ty).as_str(), s if s.starts_with("Arena_"))
+                                || matches!(ty, Ty::HashMap(_, _)))
+                        {
                             return;
                         }
                         self.line(&format!("{kw}{c_type} {name} = {rhs};"));
@@ -1263,6 +1291,10 @@ impl CGen {
                     }
                     None if matches!(ty, Ty::Arena(_)) => {
                         self.line(&format!("{kw}{c_type} {name};"));
+                    }
+                    None if matches!(ty, Ty::HashMap(_, _)) => {
+                        self.line(&format!("{kw}{c_type} {name};"));
+                        self.line(&format!("{c_type}_init(&{name});"));
                     }
                     None => {
                         self.line(&format!("{kw}{c_type} {name} = {};", self.default_init(ty)));
@@ -1500,6 +1532,297 @@ fn element_tag(ty: &Ty) -> String {
             let g = CGen::new();
             g.tag(other)
         }
+    }
+}
+
+/// Collect every distinct `HashMap<K, V>` instantiation used by the program.
+fn hashmap_types(program: &Program) -> Vec<(Ty, Ty)> {
+    let mut seen = HashSet::new();
+    let mut out = Vec::new();
+
+    fn walk(ty: &Ty, seen: &mut HashSet<String>, out: &mut Vec<(Ty, Ty)>) {
+        match ty {
+            Ty::HashMap(k, v) => {
+                let tag = format!("{}|{}", element_tag(k), element_tag(v));
+                if seen.insert(tag) {
+                    out.push(((**k).clone(), (**v).clone()));
+                }
+            }
+            Ty::Arena(inner) | Ty::Slice(inner) => walk(inner, seen, out),
+            _ => {}
+        }
+    }
+
+    fn walk_stmts(
+        stmts: &[hir::Stmt],
+        seen: &mut HashSet<String>,
+        out: &mut Vec<(Ty, Ty)>,
+    ) {
+        for s in stmts {
+            match s {
+                hir::Stmt::VarDecl { ty, init: Some(e), .. } => {
+                    walk(ty, seen, out);
+                    walk_expr(e, seen, out);
+                }
+                hir::Stmt::VarDecl { ty, .. } => walk(ty, seen, out),
+                hir::Stmt::Expr(e) => walk_expr(e, seen, out),
+                hir::Stmt::Return(Some(e)) => walk_expr(e, seen, out),
+                hir::Stmt::If { condition, then, else_, .. } => {
+                    walk_expr(condition, seen, out);
+                    walk_stmts(then, seen, out);
+                    walk_stmts(else_, seen, out);
+                }
+                hir::Stmt::While { condition, body, .. } => {
+                    walk_expr(condition, seen, out);
+                    walk_stmts(body, seen, out);
+                }
+                hir::Stmt::For { init, condition, update, body, .. } => {
+                    walk_stmts(init, seen, out);
+                    if let Some(c) = condition {
+                        walk_expr(c, seen, out);
+                    }
+                    if let Some(st) = update {
+                        walk_expr(st, seen, out);
+                    }
+                    walk_stmts(body, seen, out);
+                }
+                hir::Stmt::ForEach { elem_ty, iterable, body, .. } => {
+                    walk(elem_ty, seen, out);
+                    walk_expr(iterable, seen, out);
+                    walk_stmts(body, seen, out);
+                }
+                hir::Stmt::Block(b) => walk_stmts(b, seen, out),
+                hir::Stmt::Switch { arms, .. } => {
+                    for arm in arms {
+                        walk_stmts(&arm.body, seen, out);
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+
+    fn walk_expr(
+        e: &hir::Expr,
+        seen: &mut HashSet<String>,
+        out: &mut Vec<(Ty, Ty)>,
+    ) {
+        match e {
+            hir::Expr::MethodCall { receiver, args, .. } => {
+                walk_expr(receiver, seen, out);
+                for a in args {
+                    walk_expr(a, seen, out);
+                }
+            }
+            hir::Expr::Call { args, .. } => {
+                for a in args {
+                    walk_expr(a, seen, out);
+                }
+            }
+            hir::Expr::Binary { left, right, .. } | hir::Expr::Strcat { left, right } => {
+                walk_expr(left, seen, out);
+                walk_expr(right, seen, out);
+            }
+            hir::Expr::Assign { target, value } | hir::Expr::CompoundAssign { target, value, .. } => {
+                walk_expr(target, seen, out);
+                walk_expr(value, seen, out);
+            }
+            hir::Expr::Index { object, index } => {
+                walk_expr(object, seen, out);
+                walk_expr(index, seen, out);
+            }
+            hir::Expr::Field { object, .. } => walk_expr(object, seen, out),
+            hir::Expr::Print { text, .. } => walk_expr(text, seen, out),
+            _ => {}
+        }
+    }
+
+    for item in &program.items {
+        match item {
+            hir::Item::Fn(f) => {
+                walk(&f.return_ty, &mut seen, &mut out);
+                for (_, t) in &f.params {
+                    walk(t, &mut seen, &mut out);
+                }
+                walk_stmts(&f.body, &mut seen, &mut out);
+            }
+            hir::Item::Struct(s) => {
+                for field in &s.fields {
+                    walk(&field.ty, &mut seen, &mut out);
+                }
+            }
+            _ => {}
+        }
+    }
+    out
+}
+
+/// A C expression for the zero value of `ty`. Strings must be `""` rather than
+/// NULL: `printf("%s", NULL)` is undefined behaviour on several libcs.
+fn c_zero_value(ty: &Ty) -> String {
+    match ty {
+        Ty::Str => "((void*)(size_t)0, \"\")".to_string(),
+        other => {
+            let g = CGen::new();
+            format!("({}){{0}}", g.c_type(other))
+        }
+    }
+}
+
+/// Emit the hash function for a key type as a real C function (no
+/// statement-expressions, so MSVC and GCC/Clang both accept it).
+fn emit_key_hash_fn(g: &mut CGen, fn_name: &str, k: &Ty) {
+    let kt = g.c_type(k);
+    let body = match k {
+        Ty::Str => format!(
+            "{{ size_t __h = 1469598103934665603ULL; const char* __p = key; \
+               for (; __p && *__p; __p++) {{ __h ^= (unsigned char)*__p; __h *= 1099511628211ULL; }} \
+               return __h; }}"
+        ),
+        Ty::F32 | Ty::F64 => format!(
+            "{{ double __d = (double)key; unsigned long long __v = 0; \
+               const unsigned char* __p = (const unsigned char*)&__d; \
+               for (size_t __i = 0; __i < sizeof(double); __i++) {{ __v ^= (unsigned long long)__p[__i]; __v *= 1099511628211ULL; }} \
+               __v ^= __v >> 33; __v *= 0xff51afd7ed558ccdULL; __v ^= __v >> 33; \
+               return (size_t)__v; }}"
+        ),
+        Ty::Bool => "return key ? 1u : 0u;".to_string(),
+        // Numeric and char: widen, then avalanche-mix.
+        _ if k.is_integer() || matches!(k, Ty::Char) => format!(
+            "{{ unsigned long long __v = (unsigned long long)(long long)key; \
+               __v ^= __v >> 33; __v *= 0xff51afd7ed558ccdULL; \
+               __v ^= __v >> 33; __v *= 0xc4ceb9fe1a85ec53ULL; \
+               __v ^= __v >> 33; return (size_t)__v; }}"
+        ),
+        // Structs/enums/other aggregates: hash the object representation.
+        _ => format!(
+            "{{ const unsigned char* __p = (const unsigned char*)&key; size_t __h = 1469598103934665603ULL; \
+               for (size_t __i = 0; __i < sizeof(key); __i++) {{ __h ^= __p[__i]; __h *= 1099511628211ULL; }} \
+               return __h; }}"
+        ),
+    };
+    g.line(&format!("static size_t {fn_name}(const {kt} key) {body}"));
+}
+
+/// Emit the key-equality function for a key type as a real C function.
+fn emit_key_eq_fn(g: &mut CGen, fn_name: &str, k: &Ty) {
+    let kt = g.c_type(k);
+    let body = match k {
+        Ty::Str => "return a && b && strcmp(a, b) == 0;".to_string(),
+        Ty::F32 | Ty::F64 => "return (double)a == (double)b;".to_string(),
+        Ty::Struct(_) | Ty::Enum(_) => "return memcmp(&a, &b, sizeof(a)) == 0;".to_string(),
+        _ => "return a == b;".to_string(),
+    };
+    g.line(&format!("static bool {fn_name}(const {kt} a, const {kt} b) {{ {body} }}"));
+}
+
+/// Emit the open-addressing hash map runtime for each `<K, V>` instantiation.
+/// Zero-overhead: no allocation per entry, one grow-and-rehash on load factor.
+fn emit_hashmap_helpers(g: &mut CGen, program: &Program) {
+    for (k, v) in hashmap_types(program) {
+        let map_ty = format!("HashMap_{}_{}", element_tag(&k), element_tag(&v));
+        let kt = g.c_type(&k);
+        let vt = g.c_type(&v);
+        let hash_fn = format!("{map_ty}_hash");
+        let eq_fn = format!("{map_ty}_key_eq");
+
+        g.line("/* hashmap helpers */");
+        emit_key_hash_fn(g, &hash_fn, &k);
+        emit_key_eq_fn(g, &eq_fn, &k);
+        g.line(&format!(
+            "static void {map_ty}_init({map_ty}* m) {{ m->keys = NULL; m->vals = NULL; m->used = NULL; m->len = 0; m->cap = 0; }}"
+        ));
+        // Grow: rehash every live entry into a doubled table.
+        g.line(&format!(
+            "static void {map_ty}_grow({map_ty}* m) {{ \
+               size_t ncap = m->cap ? m->cap * 2 : 8; \
+               {kt}* nk = ({kt}*)calloc(ncap, sizeof({kt})); \
+               {vt}* nv = ({vt}*)calloc(ncap, sizeof({vt})); \
+               size_t* nu = (size_t*)calloc(ncap, sizeof(size_t)); \
+               if (!nk || !nv || !nu) {{ free(nk); free(nv); free(nu); return; }} \
+               for (size_t i = 0; i < m->cap; i++) {{ if (!m->used[i]) continue; \
+                 size_t j = {hash_fn}(m->keys[i]) % ncap; \
+                 while (nu[j]) j = (j + 1) % ncap; \
+                 nu[j] = 1; nk[j] = m->keys[i]; nv[j] = m->vals[i]; }} \
+               free(m->keys); free(m->vals); free(m->used); \
+               m->keys = nk; m->vals = nv; m->used = nu; m->cap = ncap; }}"
+        ));
+        // Slot index of `key`, or SIZE_MAX when absent.
+        g.line(&format!(
+            "static size_t {map_ty}_find(const {map_ty}* m, {kt} key) {{ \
+               if (!m->cap) return (size_t)-1; \
+               size_t j = {hash_fn}(key) % m->cap; \
+               for (size_t probe = 0; probe < m->cap; probe++) {{ \
+                 if (m->used[j] && {eq_fn}(m->keys[j], key)) return j; \
+                 j = (j + 1) % m->cap; }} \
+               return (size_t)-1; }}"
+        ));
+        g.line(&format!(
+            "static void {map_ty}_put({map_ty}* m, {kt} key, {vt} val) {{ \
+               if (!m->cap || (m->len + 1) * 10 >= m->cap * 7) {map_ty}_grow(m); \
+               if (!m->cap) return; \
+               size_t j = {hash_fn}(key) % m->cap; \
+               while (m->used[j]) {{ if ({eq_fn}(m->keys[j], key)) {{ m->vals[j] = val; return; }} j = (j + 1) % m->cap; }} \
+               m->used[j] = 1; m->keys[j] = key; m->vals[j] = val; m->len++; }}"
+        ));
+        g.line(&format!(
+            "static bool {map_ty}_contains(const {map_ty}* m, {kt} key) {{ return {map_ty}_find(m, key) != (size_t)-1; }}"
+        ));
+        // Returns the value, or the zero value when the key is absent.
+        g.line(&format!(
+            "static {vt} {map_ty}_get(const {map_ty}* m, {kt} key) {{ \
+               size_t j = {map_ty}_find(m, key); \
+               return j == (size_t)-1 ? {zero_v} : m->vals[j]; }}",
+            zero_v = c_zero_value(&v)
+        ));
+        // get_or(key, fallback) — no branching at the call site.
+        g.line(&format!(
+            "static {vt} {map_ty}_get_or(const {map_ty}* m, {kt} key, {vt} fallback) {{ \
+               size_t j = {map_ty}_find(m, key); \
+               return j == (size_t)-1 ? fallback : m->vals[j]; }}"
+        ));
+        g.line(&format!(
+            "static bool {map_ty}_remove({map_ty}* m, {kt} key) {{ \
+               size_t j = {map_ty}_find(m, key); \
+               if (j == (size_t)-1) return false; \
+               m->used[j] = 0; m->len--; \
+               for (size_t step = 1; step < m->cap; step++) {{ \
+                 size_t k2 = (j + step) % m->cap; \
+                 if (!m->used[k2]) break; \
+                 {kt} rk = m->keys[k2]; {vt} rv = m->vals[k2]; \
+                 m->used[k2] = 0; m->len--; {map_ty}_put(m, rk, rv); }} \
+               return true; }}"
+        ));
+        g.line(&format!(
+            "static size_t {map_ty}_count(const {map_ty}* m) {{ return m->len; }}"
+        ));
+        g.line(&format!(
+            "static bool {map_ty}_is_empty(const {map_ty}* m) {{ return m->len == 0; }}"
+        ));
+        g.line(&format!(
+            "static void {map_ty}_clear({map_ty}* m) {{ if (m->used) memset(m->used, 0, m->cap * sizeof(size_t)); m->len = 0; }}"
+        ));
+        // Iteration helpers: index of the i-th live entry, then its key/value.
+        g.line(&format!(
+            "static size_t {map_ty}_nth(const {map_ty}* m, size_t i) {{ \
+               size_t seen = 0; \
+               for (size_t s = 0; s < m->cap; s++) {{ if (!m->used[s]) continue; if (seen == i) return s; seen++; }} \
+               return (size_t)-1; }}"
+        ));
+        g.line(&format!(
+            "static {kt} {map_ty}_key_at(const {map_ty}* m, size_t i) {{ \
+               size_t s = {map_ty}_nth(m, i); return s == (size_t)-1 ? {zero_k} : m->keys[s]; }}",
+            zero_k = c_zero_value(&k)
+        ));
+        g.line(&format!(
+            "static {vt} {map_ty}_value_at(const {map_ty}* m, size_t i) {{ \
+               size_t s = {map_ty}_nth(m, i); return s == (size_t)-1 ? {zero_v} : m->vals[s]; }}",
+            zero_v = c_zero_value(&v)
+        ));
+        g.line(&format!(
+            "static void {map_ty}_free({map_ty}* m) {{ free(m->keys); free(m->vals); free(m->used); m->keys = NULL; m->vals = NULL; m->used = NULL; m->len = 0; m->cap = 0; }}"
+        ));
+        g.line("");
     }
 }
 
