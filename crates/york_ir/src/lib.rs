@@ -329,6 +329,18 @@ pub enum Expr {
         args: Vec<Expr>,
     },
 
+    /// Explicit cast: `(T) expr`.
+    Cast { ty: Ty, expr: Box<Expr> },
+
+    /// `sizeof(T)` — a compile-time constant in the generated C.
+    Sizeof(Ty),
+
+    /// `alignof(T)` — a compile-time constant in the generated C.
+    Alignof(Ty),
+
+    /// Array literal `[a, b, c]` — lowered to a C compound literal.
+    ArrayLit { elem_ty: Ty, elems: Vec<Expr> },
+
     /// Reference to an enum variant: `Color.Red`.
     EnumRef { enum_name: String, variant: String },
 }

@@ -1,0 +1,45 @@
+// Array literals, explicit casts, and sizeof/alignof.
+//   york run examples/syntax_demo.yk
+
+struct Point {
+    x: int,
+    y: int,
+}
+
+fn main() {
+    // ── Array literals ────────────────────────────────────────────
+    int[] scores = [10, 20, 30, 40];
+    println(scores[0]);
+    println(scores[3]);
+
+    int total = 0;
+    for (int i = 0; i < 4; i = i + 1) {
+        total += scores[i];
+    }
+    println(total);
+
+    // `[value; count]` expands at compile time.
+    int[] pad = [7; 3];
+    println(pad[2]);
+
+    // Literals adopt the declared element type, so no surprise widening.
+    long[] wide = [1, 2];
+    println(wide[1]);
+
+    // ── Explicit casts ────────────────────────────────────────────
+    int truncated = (int) 3.99;
+    println(truncated);
+
+    double widened = (double) 7;
+    println(widened);
+
+    // Zero casts to a struct's zero value.
+    Point origin = (Point) 0;
+    println(origin.x);
+
+    // ── sizeof / alignof ──────────────────────────────────────────
+    println(sizeof(int));
+    println(alignof(int));
+    println(sizeof(Point));
+    println(sizeof(double));
+}

@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
@@ -7,6 +7,7 @@ use anyhow::Result;
 use colored::Colorize;
 use notify::{Config, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 
+use crate::banner;
 use crate::pipeline;
 
 /// Watch a project for `.yk` changes and rebuild+run on each change.
@@ -63,6 +64,7 @@ pub fn dev(root: &Path, entry: &Path, args: &[String]) -> Result<()> {
 
         // Debounce: wait a beat, then rebuild once.
         std::thread::sleep(Duration::from_millis(120));
+        banner::dev_header(env!("CARGO_PKG_VERSION"));
         run_once(root, entry, args);
         let _ = running;
     }
@@ -70,7 +72,6 @@ pub fn dev(root: &Path, entry: &Path, args: &[String]) -> Result<()> {
 }
 
 fn run_once(root: &Path, entry: &Path, args: &[String]) {
-    let t = std::time::Instant::now();
     println!();
     println!("{} rebuilding…", "▶".cyan().bold());
     match pipeline::compile_run(entry, args) {

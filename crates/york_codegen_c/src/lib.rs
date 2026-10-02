@@ -10,11 +10,19 @@ pub struct CGen {
     indent: usize,
     /// Is the current function `main` (needed to map York `return;` into `return 0;`).
     in_main: bool,
+    /// Counter for compiler-generated temporaries (array literals, match arms).
+    tmp: usize,
 }
 
 impl CGen {
     pub fn new() -> Self {
-        CGen { out: String::new(), indent: 0, in_main: false }
+        CGen { out: String::new(), indent: 0, in_main: false, tmp: 0 }
+    }
+
+    /// Allocate a unique C identifier for a compiler-generated temporary.
+    fn tmp_name(&mut self, prefix: &str) -> String {
+        self.tmp += 1;
+        format!("__{prefix}{}", self.tmp)
     }
 
     fn line(&mut self, s: &str) {
@@ -193,6 +201,51 @@ impl CGen {
             }
             hir::Expr::Assign { target, value } => {
                 format!("(({}) = ({}))", self.expr(target), self.expr(value))
+            }
+            hir::Expr::Cast { ty, expr: inner } => {
+                // Wrapping primitives makes the C compiler do the implicit
+                // conversion; aggregates pass through. Casting a zero literal
+                // to an aggregate yields that aggregate's zero value.
+                if matches!(inner.as_ref(), hir::Expr::Int(0) | hir::Expr::Null)
+                    && matches!(
+                        ty,
+                        Ty::Struct(_) | Ty::Enum(_) | Ty::Arena(_) | Ty::HashMap(_, _)
+                    )
+                {
+                    return self.default_init(ty);
+                }
+                let src = self.expr(inner);
+                match ty {
+                    Ty::Struct(_) | Ty::Enum(_) | Ty::Arena(_) | Ty::HashMap(_, _) => {
+                        format!("({})(void*){src}", self.c_type(ty))
+                    }
+                    _ => format!("({})({src})", self.c_type(ty)),
+                }
+            }
+            hir::Expr::Sizeof(ty) => format!("sizeof({})", self.c_type(ty)),
+            hir::Expr::Alignof(ty) => {
+                // MSVC's `__alignof` is the portable spelling for `alignof` here.
+                format!("__alignof({})", self.c_type(ty))
+            }
+            hir::Expr::ArrayLit { elem_ty, elems } => {
+                // A slice literal becomes a real temporary array; C compound
+                // literals are only valid for array/struct/union types.
+                let id = self.tmp_name("arr");
+                let vals = elems.iter().map(|e| self.expr(e)).collect::<Vec<_>>();
+                let n = vals.len().max(1);
+                let body = if vals.is_empty() {
+                    self.default_init(elem_ty)
+                } else {
+                    vals.join(", ")
+                };
+                self.line(&format!(
+                    "{} {}[{}] = {{{}}};",
+                    self.c_type(elem_ty),
+                    id,
+                    n,
+                    body
+                ));
+                id
             }
         }
     }

@@ -370,11 +370,34 @@ impl SemaCtx {
         stmts
     }
 
+    /// An array literal adopts the declared element type, and its elements are
+    /// cast to match: `int[] xs = [1, 2];`. Also fixes up empty literals.
+    fn coerce_array_literal(&self, init: &mut hir::Expr, declared: &Ty) {
+        let Ty::Slice(inner) = declared else { return };
+        let hir::Expr::ArrayLit { elem_ty, elems } = init else { return };
+        let want = (**inner).clone();
+        if elems.is_empty() {
+            *elem_ty = want;
+        } else if *elem_ty != want {
+            for e in elems.iter_mut() {
+                let prev = std::mem::replace(e, hir::Expr::Null);
+                *e = hir::Expr::Cast {
+                    ty: want.clone(),
+                    expr: Box::new(prev),
+                };
+            }
+            *elem_ty = want;
+        }
+    }
+
     fn lower_stmt(&mut self, stmt: &Spanned<AstStmt>, scope: &mut Scope, errors: &mut Vec<SemanticErrorWithSpan>) -> Option<hir::Stmt> {
         match &stmt.node {
             AstStmt::Let { name, ty, value } => {
                 let resolved_ty = ty.as_ref().map(|t| self.resolve_type(&t.node)).unwrap_or(Ty::Inferred);
-                let init = value.as_ref().map(|e| self.lower_expr(e, scope, errors));
+                let mut init = value.as_ref().map(|e| self.lower_expr(e, scope, errors));
+                if let Some(e) = init.as_mut() {
+                    self.coerce_array_literal(e, &resolved_ty);
+                }
                 let final_ty = match (&resolved_ty, &init) {
                     (Ty::Inferred, Some(e)) => self.infer_expr_type(e, scope).unwrap_or(Ty::Inferred),
                     (t, _) => t.clone(),
@@ -389,7 +412,8 @@ impl SemaCtx {
             }
             AstStmt::Var { name, ty, value } => {
                 let resolved_ty = ty.as_ref().map(|t| self.resolve_type(&t.node)).unwrap_or(Ty::Inferred);
-                let init = self.lower_expr(value, scope, errors);
+                let mut init = self.lower_expr(value, scope, errors);
+                self.coerce_array_literal(&mut init, &resolved_ty);
                 let final_ty = match (&resolved_ty, &init) {
                     (Ty::Inferred, e) => self.infer_expr_type(e, scope).unwrap_or(Ty::Inferred),
                     (t, _) => t.clone(),
@@ -1130,12 +1154,42 @@ impl SemaCtx {
                 }
             }
 
-            AstExpr::Array(_elems) => {
-                errors.push(SemanticErrorWithSpan {
-                    error: SemanticError::NotSupported("array literals".into()),
-                    span: expr.span,
-                });
-                hir::Expr::Str("__array__".into())
+            AstExpr::Array(elems) => {
+                // `[a, b, c]` — element type comes from the first element. An
+                // empty literal takes its type from the declared variable type.
+                let lowered = elems
+                    .iter()
+                    .map(|e| self.lower_expr(e, scope, errors))
+                    .collect::<Vec<_>>();
+                let elem_ty = lowered
+                    .first()
+                    .and_then(|e| self.infer_expr_type(e, scope))
+                    .unwrap_or(Ty::I32);
+                hir::Expr::ArrayLit { elem_ty, elems: lowered }
+            }
+
+            AstExpr::ArrayRepeat { value, count } => {
+                // `[value; count]` — expands the repeat at compile time.
+                let n = match &count.node {
+                    AstExpr::Int(n) if *n >= 0 => *n as usize,
+                    _ => {
+                        errors.push(SemanticErrorWithSpan {
+                            error: SemanticError::NotSupported(
+                                "array repeat count must be a non-negative literal".into(),
+                            ),
+                            span: count.span,
+                        });
+                        0
+                    }
+                };
+                let v = self.lower_expr(value, scope, errors);
+                let elem_ty = self
+                    .infer_expr_type(&v, scope)
+                    .unwrap_or(Ty::I32);
+                hir::Expr::ArrayLit {
+                    elem_ty,
+                    elems: (0..n).map(|_| v.clone()).collect(),
+                }
             }
 
             AstExpr::Tuple(_elems) => {
@@ -1143,7 +1197,7 @@ impl SemaCtx {
                     error: SemanticError::NotSupported("tuples".into()),
                     span: expr.span,
                 });
-                hir::Expr::Str("__tuple__".into())
+                hir::Expr::Null
             }
 
             AstExpr::Match { .. } => {
@@ -1160,37 +1214,55 @@ impl SemaCtx {
                 });
                 hir::Expr::Null
             }
-            AstExpr::Cast { .. } => {
-                errors.push(SemanticErrorWithSpan {
-                    error: SemanticError::NotSupported("casts".into()),
-                    span: expr.span,
-                });
-                hir::Expr::Null
+            AstExpr::Cast { expr: inner, ty } => {
+                // `(T) e` — a reinterpretation of the value's type.
+                let target = self.resolve_type(&ty.node);
+                let lowered = self.lower_expr(inner, scope, errors);
+                if let Some(from) = self.infer_expr_type(&lowered, scope) {
+                    let ok = from.is_numeric() && target.is_numeric()
+                        || matches!(from, Ty::Slice(_)) || matches!(target, Ty::Slice(_))
+                        || matches!(from, Ty::Struct(_)) || matches!(target, Ty::Struct(_))
+                        || matches!(from, Ty::Enum(_)) || matches!(target, Ty::Enum(_))
+                        || matches!(from, Ty::Str) || matches!(target, Ty::Str)
+                        || matches!(from, Ty::Bool) || matches!(target, Ty::Bool)
+                        || matches!(from, Ty::Inferred) || matches!(target, Ty::Inferred);
+                    if !ok {
+                        errors.push(SemanticErrorWithSpan {
+                            error: SemanticError::TypeMismatch {
+                                expected: format!("{target}"),
+                                found: format!("{from}"),
+                            },
+                            span: expr.span,
+                        });
+                    }
+                }
+                hir::Expr::Cast {
+                    ty: target,
+                    expr: Box::new(lowered),
+                }
             }
-            AstExpr::Sizeof(_) | AstExpr::Alignof(_) => {
-                errors.push(SemanticErrorWithSpan {
-                    error: SemanticError::NotSupported("sizeof/alignof".into()),
-                    span: expr.span,
-                });
-                hir::Expr::Null
-            }
-            AstExpr::TypeAnnotation { .. } => {
-                errors.push(SemanticErrorWithSpan {
-                    error: SemanticError::NotSupported("type annotations on expressions".into()),
-                    span: expr.span,
-                });
-                hir::Expr::Null
+            AstExpr::Sizeof(ty) => hir::Expr::Sizeof(self.resolve_type(&ty.node)),
+            AstExpr::Alignof(ty) => hir::Expr::Alignof(self.resolve_type(&ty.node)),
+            AstExpr::TypeAnnotation { expr: inner, ty } => {
+                // Ascription: verify the value matches, then keep the value.
+                let want = self.resolve_type(&ty.node);
+                let lowered = self.lower_expr(inner, scope, errors);
+                if let Some(g) = self.infer_expr_type(&lowered, scope) {
+                    if want != g && want.is_numeric() && !g.is_numeric() {
+                        errors.push(SemanticErrorWithSpan {
+                            error: SemanticError::TypeMismatch {
+                                expected: format!("{want}"),
+                                found: format!("{g}"),
+                            },
+                            span: expr.span,
+                        });
+                    }
+                }
+                lowered
             }
             AstExpr::ArenaAlloc { .. } => {
                 errors.push(SemanticErrorWithSpan {
                     error: SemanticError::NotSupported("explicit arena allocation".into()),
-                    span: expr.span,
-                });
-                hir::Expr::Null
-            }
-            AstExpr::ArrayRepeat { .. } => {
-                errors.push(SemanticErrorWithSpan {
-                    error: SemanticError::NotSupported("array repeat".into()),
                     span: expr.span,
                 });
                 hir::Expr::Null

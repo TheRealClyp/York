@@ -1,4 +1,4 @@
-use york_ast::ast::{BinOp, Expr, Path};
+use york_ast::ast::{BinOp, Expr, MatchArm, Path, Pattern};
 use york_ast::ast::UnOp;
 use york_ast::span::{Spanned};
 use york_ast::{CompoundOp, IfExpr, ElseBranch, Token};
@@ -6,7 +6,178 @@ use york_ast::{CompoundOp, IfExpr, ElseBranch, Token};
 use crate::Parser;
 
 /// Java/JS-style expression parser.
-pub fn parse_expression(p: &mut Parser) -> Spanned<Expr> {
+/// Parse `match <scrutinee> { <pattern> [if <guard>] => <expr>, ... }`.
+///
+/// Also accepts `pattern: expr` as a synonym for `pattern => expr`.
+fn parse_match_expr(p: &mut Parser) -> Spanned<Expr> {
+    let sp = p.peek_span();
+    p.advance(); // `match`
+
+    // The scrutinee's `{` opens the arm list, never a struct literal.
+    p.no_struct_lit = true;
+    let scrutinee = parse_expr_bp(p, 4);
+    p.no_struct_lit = false;
+    p.expect(&Token::LBrace, "`{` to open match arms");
+
+    let mut arms = Vec::new();
+    while !p.at(&Token::RBrace) && !p.at(&Token::Eof) {
+        let Some(pattern) = parse_pattern(p) else {
+            p.advance();
+            continue;
+        };
+        let guard = if p.eat(&Token::If) {
+            Some(parse_expr_bp(p, 4))
+        } else {
+            None
+        };
+        if !p.eat(&Token::FatArrow) && !p.eat(&Token::Colon) {
+            p.push_error("`=>` after match pattern");
+            p.advance();
+            continue;
+        }
+        let body = parse_expr_bp(p, 4);
+        arms.push(MatchArm { pattern, guard, body });
+        if !p.eat(&Token::Comma) {
+            // Commas are optional before `}` and between block-bodied arms.
+            if !p.at(&Token::RBrace) {
+                p.push_error("`,` between match arms");
+                p.advance();
+            }
+        }
+    }
+    p.expect(&Token::RBrace, "`}` to close match expression");
+    let end = p.previous_span();
+    Spanned::new(
+        Expr::Match {
+            scrutinee: Box::new(scrutinee),
+            arms,
+        },
+        sp.to(end),
+    )
+}
+
+/// Parse a single match pattern: literal, `_`, identifier binding, tuple,
+/// enum variant, or struct pattern.
+fn parse_pattern(p: &mut Parser) -> Option<Spanned<Pattern>> {
+    let sp = p.peek_span();
+
+    // Negative numeric literals.
+    let literal = match p.peek_tok().clone() {
+        Token::Minus => {
+            p.advance();
+            let operand = parse_expr_bp(p, 14);
+            Some(Spanned::new(
+                Expr::Unary {
+                    op: Spanned::new(UnOp::Neg, sp),
+                    operand: Box::new(operand),
+                },
+                sp,
+            ))
+        }
+        Token::IntLiteral(_) | Token::FloatLiteral(_) | Token::StringLiteral(_)
+        | Token::CharLiteral(_) | Token::BoolLiteral(_) => Some(parse_expr_bp(p, 14)),
+        _ => None,
+    };
+    if let Some(lit) = literal {
+        return Some(Spanned::new(Pattern::Literal(lit), sp));
+    }
+
+    if matches!(p.peek_tok(), Token::Ident(s) if s == "_") {
+        p.advance();
+        return Some(Spanned::new(Pattern::Wildcard, sp));
+    }
+
+    // Tuple pattern: `(a, b)`
+    if p.at(&Token::LParen) {
+        let save = p.pos();
+        p.advance();
+        if !p.at(&Token::RParen) {
+            let mut items = Vec::new();
+            while !p.at(&Token::RParen) && !p.at(&Token::Eof) {
+                let Some(inner) = parse_pattern(p) else { break };
+                items.push(inner);
+                if !p.eat(&Token::Comma) { break; }
+            }
+            if p.eat(&Token::RParen) && items.len() > 1 {
+                return Some(Spanned::new(Pattern::Tuple(items), sp));
+            }
+        }
+        p.set_pos(save);
+    }
+
+    let segs = p.parse_path_segments();
+    if segs.is_empty() {
+        return None;
+    }
+    // Enum variant patterns use dotted access: `Color.Red`.
+    let mut segs = segs;
+    while p.at(&Token::Dot) {
+        let dot = p.peek_span();
+        p.advance();
+        let Some(name) = p.expect_ident("variant name after `.`") else { break };
+        segs.push(Spanned::new(name.node, dot));
+    }
+
+    // Struct pattern: `Point { x, y }` (or `Point { x: px, y: py }`)
+    if p.at(&Token::LBrace) {
+        p.advance();
+        let mut fields = Vec::new();
+        while !p.at(&Token::RBrace) && !p.at(&Token::Eof) {
+            let Some(name) = p.expect_ident("struct pattern field") else { p.advance(); continue; };
+            let value = if p.eat(&Token::Colon) {
+                match parse_pattern(p) {
+                    Some(inner) => inner,
+                    None => Spanned::new(Pattern::Wildcard, name.span),
+                }
+            } else {
+                Spanned::new(Pattern::Ident(name.clone()), name.span)
+            };
+            fields.push((name, value));
+            if !p.eat(&Token::Comma) { break; }
+        }
+        p.expect(&Token::RBrace, "`}` to close struct pattern");
+        return Some(Spanned::new(
+            Pattern::Struct {
+                path: Path { segments: segs },
+                fields,
+            },
+            sp,
+        ));
+    }
+
+    let path = Path { segments: segs };
+    // Enum variant with positional payload: `Variant(a, b)`
+    if p.at(&Token::LParen) {
+        p.advance();
+        let mut fields = Vec::new();
+        while !p.at(&Token::RParen) && !p.at(&Token::Eof) {
+            let Some(inner) = parse_pattern(p) else { break };
+            fields.push(inner);
+            if !p.eat(&Token::Comma) { break; }
+        }
+        p.expect(&Token::RParen, "`)` to close variant pattern");
+        return Some(Spanned::new(Pattern::Variant { path, fields }, sp));
+    }
+
+    // A single-segment path with no payload is a binding, unless it names an
+    // enum variant — the caller resolves that against the enum tables.
+    let last = path.segments.last().map(|s| s.node.clone()).unwrap_or_default();
+    let name = path.segments.last().cloned()?;
+    Some(Spanned::new(
+        if path.segments.len() == 1 && !is_uppercase_start(&last) {
+            Pattern::Ident(name)
+        } else {
+            Pattern::Variant { path, fields: Vec::new() }
+        },
+        sp,
+    ))
+}
+
+fn is_uppercase_start(s: &str) -> bool {
+    s.chars().next().is_some_and(|c| c.is_ascii_uppercase())
+}
+
+pub(crate) fn parse_expression(p: &mut Parser) -> Spanned<Expr> {
     parse_expr_bp(p, 0)
 }
 
@@ -270,8 +441,82 @@ fn parse_prefix(p: &mut Parser) -> Spanned<Expr> {
             let end = p.previous_span();
             Spanned::new(Expr::New { ty, args }, sp.to(end))
         }
+        Token::Sizeof | Token::Alignof => {
+            let sp = p.peek_span();
+            let is_sizeof = p.at(&Token::Sizeof);
+            p.advance();
+            p.expect(&Token::LParen, "`(` after `sizeof`/`alignof`");
+            let Some(ty) = crate::types::parse_type(p) else {
+                p.push_error("type inside `sizeof`/`alignof`");
+                return Spanned::new(Expr::Null, sp);
+            };
+            p.expect(&Token::RParen, "`)` to close `sizeof`/`alignof`");
+            let end = p.previous_span();
+            let e = if is_sizeof {
+                Expr::Sizeof(ty)
+            } else {
+                Expr::Alignof(ty)
+            };
+            Spanned::new(e, sp.to(end))
+        }
+        Token::Match => parse_match_expr(p),
+        Token::LBracket => {
+            // Array literal: `[a, b, c]` or repeat form `[value; count]`.
+            let sp = p.peek_span();
+            p.advance();
+            if p.at(&Token::RBracket) {
+                p.advance();
+                return Spanned::new(Expr::Array(Vec::new()), sp);
+            }
+            let first = parse_expression(p);
+            if p.eat(&Token::Semicolon) {
+                let count = parse_expression(p);
+                p.expect(&Token::RBracket, "`]` to close array repeat");
+                let end = p.previous_span();
+                return Spanned::new(
+                    Expr::ArrayRepeat {
+                        value: Box::new(first),
+                        count: Box::new(count),
+                    },
+                    sp.to(end),
+                );
+            }
+            let mut elems = vec![first];
+            while p.eat(&Token::Comma) {
+                if p.at(&Token::RBracket) {
+                    break;
+                }
+                elems.push(parse_expression(p));
+            }
+            p.expect(&Token::RBracket, "`]` to close array literal");
+            let end = p.previous_span();
+            Spanned::new(Expr::Array(elems), sp.to(end))
+        }
         Token::LParen => {
             let sp = p.peek_span();
+
+            // Explicit cast: `(i32) x`, `(float) y`, `(Player) p`.
+            // Only when a type is followed by `)` and then a value — otherwise
+            // this is an ordinary parenthesised expression.
+            if p.is_type_start_at(1) {
+                let save = p.pos();
+                p.advance(); // `(`
+                if let Some(ty) = crate::types::parse_type(p) {
+                    if p.eat(&Token::RParen) && p.can_start_expression_at(0) {
+                        let operand = parse_expr_bp(p, 14);
+                        let end = p.previous_span();
+                        return Spanned::new(
+                            Expr::Cast {
+                                expr: Box::new(operand),
+                                ty,
+                            },
+                            sp.to(end),
+                        );
+                    }
+                }
+                p.set_pos(save);
+            }
+
             p.advance();
             if p.at(&Token::RParen) {
                 p.advance();
@@ -303,7 +548,7 @@ fn parse_prefix(p: &mut Parser) -> Spanned<Expr> {
             let path = Path { segments: segs };
 
             // Struct literal: `Player { pos: v, hp: 100 }`
-            if p.at(&Token::LBrace) {
+            if p.at(&Token::LBrace) && !p.no_struct_lit {
                 p.advance();
                 let mut fields = Vec::new();
                 while !p.at(&Token::RBrace) && !p.at(&Token::Eof) {

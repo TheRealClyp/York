@@ -242,14 +242,16 @@ York is strictly typed at compile time with local type inference for variable bi
 - **`enum`** — `enum Name { Variant, ... }` unit variants compiled to C enums; referenced as `Name.Variant`.
 - **`impl`** — `impl Type { ... }` with implicit `self` / `this`; methods mangle to `Type_method`.
 - **`Arena<T>`** — generic contiguous buffer (§5). Also accepts `arena(T)` annotation style.
-- **Slices `T[]`** — lowered to `T*`; supports `for (x : slice)` and `slice[i]`.
-- **Arrays / array literals** — *not yet supported* (§17).
+- **Slices `T[]`** — lowered to `T*`; supports `for (x : slice)` and `slice[i]`. Slices are raw pointers, so they carry no length; use `Arena<T>` or a literal length when you need one.
+- **Array literals** — `[a, b, c]`, `[value; count]`, and `[]`. They lower to a real C array and decay to a slice; indexing and C-style `for` loops work as expected.
+- **Explicit casts** — `(T) expr`. Numeric conversions are checked; casting `0` to a struct/enum/arena/map yields its zero value.
+- **`sizeof(T)` / `alignof(T)`** — compile-time constants emitted straight into the C.
 
 ### Statements
 `let` / `var` bindings (optional type annotation) · expression statements · assignment and compound assignment (`=`, `+=`, `-=`, `*=`, `/=`, `%=`) · `return` · `if / else if / else` · `while` · `loop` (desugars to `while (true)`) · C-style `for` · `for (x : iterable)` foreach · `switch`/`case`/`default` (no fallthrough — implicit `break` after every arm) · `break` / `continue` · block expressions.
 
 ### Expressions
-Int / float / string / char / bool / `null` literals · identifiers · string `+` concatenation · string `==` / `!=` comparison (via `strcmp`) · binary & unary operators · `++` / `--` (prefix and postfix) · ternary `cond ? a : b` · indexing `a[i]` · struct literal `Name { f: v }` · `new Name(args)` · if-as-expression (require both branches to be single expressions) · block expressions.
+Int / float / string / char / bool / `null` literals · identifiers · string `+` concatenation · string `==` / `!=` comparison (via `strcmp`) · binary & unary operators · `++` / `--` (prefix and postfix) · ternary `cond ? a : b` · indexing `a[i]` · array literals `[a, b]` / `[v; n]` · casts `(T) expr` · `sizeof(T)` / `alignof(T)` · struct literal `Name { f: v }` · `new Name(args)` · if-as-expression (require both branches to be single expressions) · block expressions.
 
 ---
 
@@ -815,17 +817,16 @@ The GUI functions compile everywhere (no-op stubs off Windows); networking and t
 - **Language Server (`york-lsp`)** — Standard LSP over stdio: real-time diagnostics (lexer/parser/sema), autocomplete, and hover (§14.2).
 
 ### Remaining Boundaries & Work-in-Progress:
-- **Array literals** (`[a, b, c]`) — use `Arena<T>` or slices.
 - **Tuples**, **`match` expressions**, **closures/lambdas**.
-- **Explicit casts** and **`sizeof`/`alignof`**.
 - **Tagged/payload enum variants** — only unit variants compile to plain C enums.
+- **Slice lengths** — slices lower to raw `T*`, so `.len()` and `for (x : slice)` are not available on them; `Arena<T>` and array-literal lengths cover the common cases.
 - **`Result<T, E>` / `Option<T>` sum types** — planned; error handling today is `assert` plus explicit zero-value checks (see `m.get_or(key, fallback)` for the same effect on maps).
 - **Custom `yc` Systems Compiler Driver** — Standalone GCC/Clang-compatible compiler driver with full optimization flags (`-O2`, `-O3`).
 - **Wasm backend** — `york_codegen_wasm` / `york_web` are stubs; the web path today is `york mobile` producing a PWA from native code, not a compiled-to-Wasm toolchain.
 - **Public package registry** — `ypkg publish` validates packages today; a hosted registry + `ypkg install <pkg>` remote fetch is on the roadmap.
 
 ### Working Today:
-- **Multi-File Module Linking (`import "file.yk"`)** — fully supported since v1.1.3. Paths resolve relative to the importing file, nest transitively, and are cycle-safe. See §18.1.
+- **Multi-File Module Linking (`import "file.yk"`)** — fully supported in v1.1.4. Paths resolve relative to the importing file, nest transitively, and are cycle-safe. See §18.1.
 - **Built-in Generic `HashMap<K, V>`** — zero-overhead open-addressing maps for any key/value pair. See §5.1.
 
 ---

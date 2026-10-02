@@ -16,6 +16,9 @@ pub struct Parser<'a> {
     pos: usize,
     prev_span: Span,
     pub errors: Vec<ParseErrorWithSpan>,
+    /// Set while parsing a `for x in <expr>` iterable, where a following `{`
+    /// opens the loop body rather than a struct literal.
+    pub(crate) no_struct_lit: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -30,6 +33,7 @@ pub fn parse(tokens: &[SpannedToken]) -> ParseResult {
         pos: 0,
         prev_span: Span::new(BytePos::ZERO, BytePos::ZERO),
         errors: Vec::new(),
+        no_struct_lit: false,
     };
     let program = parser.parse_program();
     ParseResult {
@@ -136,6 +140,51 @@ impl<'a> Parser<'a> {
             | Token::TyBool | Token::TyChar | Token::TyString | Token::TyVoid | Token::TyNever
             | Token::SelfType | Token::Arena
         ) || matches!(self.peek_tok(), Token::Ident(s) if s.chars().next().map_or(false, |c| c.is_uppercase()))
+    }
+
+    /// Whether the token at `self.pos + n` can begin a type annotation.
+    pub(crate) fn is_type_start_at(&self, n: usize) -> bool {
+        let idx = (self.pos + n).min(self.tokens.len() - 1);
+        matches!(
+            &self.tokens[idx].node,
+            Token::TyI8 | Token::TyI16 | Token::TyI32 | Token::TyI64 | Token::TyI128
+                | Token::TyU8 | Token::TyU16 | Token::TyU32 | Token::TyU64 | Token::TyU128
+                | Token::TyF16 | Token::TyF32 | Token::TyF64
+                | Token::TyBool | Token::TyChar | Token::TyString | Token::TyVoid | Token::TyNever
+                | Token::SelfType | Token::Arena
+        ) || matches!(
+            &self.tokens[idx].node,
+            Token::Ident(s) if s.chars().next().map_or(false, |c| c.is_uppercase())
+        )
+    }
+
+    /// Whether the token at `self.pos + n` can begin an expression.
+    pub(crate) fn can_start_expression_at(&self, n: usize) -> bool {
+        let idx = (self.pos + n).min(self.tokens.len() - 1);
+        matches!(
+            &self.tokens[idx].node,
+            Token::IntLiteral(_)
+                | Token::FloatLiteral(_)
+                | Token::StringLiteral(_)
+                | Token::CharLiteral(_)
+                | Token::BoolLiteral(_)
+                | Token::NullLiteral
+                | Token::Ident(_)
+                | Token::SelfType
+                | Token::This
+                | Token::LParen
+                | Token::LBrace
+                | Token::LBracket
+                | Token::Minus
+                | Token::Bang
+                | Token::Tilde
+                | Token::Amp
+                | Token::Star
+                | Token::New
+                | Token::Match
+                | Token::Sizeof
+                | Token::Alignof
+        )
     }
 
     fn looks_like_local_decl(&mut self) -> bool {
@@ -578,7 +627,9 @@ impl<'a> Parser<'a> {
                     // Rust-style: `for name in iterable { body }`
                     let Some(variable) = self.expect_ident("loop variable") else { return None };
                     self.expect(&Token::In, "`in` in for loop");
+                    self.no_struct_lit = true;
                     let iterable = crate::expr::parse_expression(self);
+                    self.no_struct_lit = false;
                     let body = self.parse_block().node;
                     Some(Spanned::new(Stmt::For { variable, iterable, body }, sp))
                 }
