@@ -35,6 +35,8 @@ pub enum Ty {
     HashMap(Box<Ty>, Box<Ty>),
     /// Slices: T[]
     Slice(Box<Ty>),
+    /// Fixed-size arrays with a compile-time length: T[N]
+    Array(Box<Ty>, usize),
     /// An enum, referenced by name.
     Enum(String),
     /// Inferred (`_`) — filled in during type checking.
@@ -89,6 +91,7 @@ impl std::fmt::Display for Ty {
             Ty::Arena(inner) => write!(f, "Arena<{inner}>"),
             Ty::HashMap(k, v) => write!(f, "HashMap<{k}, {v}>"),
             Ty::Slice(inner) => write!(f, "{inner}[]"),
+        Ty::Array(inner, n) => write!(f, "{inner}[{n}]"),
             Ty::Inferred => write!(f, "_"),
         }
     }
@@ -125,7 +128,7 @@ impl Ty {
             Ty::I8 | Ty::I16 | Ty::I32 | Ty::I64 | Ty::I128 => "0".into(),
             Ty::U8 | Ty::U16 | Ty::U32 | Ty::U64 | Ty::U128 => "0".into(),
             Ty::F32 | Ty::F64 => "0.0".into(),
-            Ty::Struct(_) | Ty::Slice(_) | Ty::Enum(_) | Ty::Inferred | Ty::Arena(_) => "{}".into(),
+            Ty::Struct(_) | Ty::Slice(_) | Ty::Array(_, _) | Ty::Enum(_) | Ty::Inferred | Ty::Arena(_) => "{}".into(),
             Ty::HashMap(_, _) => "{ (void*)0, (void*)0, 0, 0 }".into(),
         }
     }
@@ -138,6 +141,7 @@ impl Ty {
             Ty::Arena(inner) => format!("Arena{}", inner.tag()),
             Ty::HashMap(k, v) => format!("HashMap{}To{}", k.tag(), v.tag()),
             Ty::Slice(inner) => format!("Sl{}", inner.tag()),
+        Ty::Array(inner, n) => format!("A{}{}", inner.tag(), n),
             Ty::Str => "Str".into(),
             Ty::Bool => "Bool".into(),
             Ty::Char => "Char".into(),
@@ -339,7 +343,11 @@ pub enum Expr {
     Alignof(Ty),
 
     /// Array literal `[a, b, c]` — lowered to a C compound literal.
-    ArrayLit { elem_ty: Ty, elems: Vec<Expr> },
+    ArrayLit {
+        elem_ty: Ty,
+        elems: Vec<Expr>,
+        len: usize,
+    },
 
     /// Reference to an enum variant: `Color.Red`.
     EnumRef { enum_name: String, variant: String },

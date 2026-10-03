@@ -43,7 +43,7 @@ impl SemaCtx {
     //  Type resolution
     // ─────────────────────────────────────────────────────────
 
-    fn resolve_type(&self, ann: &TypeAnnotation) -> Ty {
+    fn resolve_type(&mut self, ann: &TypeAnnotation) -> Ty {
         match ann {
             TypeAnnotation::Primitive(p) => Ty::from_primitive(*p),
             TypeAnnotation::Void => Ty::Void,
@@ -103,7 +103,23 @@ impl SemaCtx {
                 self.resolve_type(&inner.node)
             }
             TypeAnnotation::Tuple(_) => Ty::Struct("Tuple".into()),
-            TypeAnnotation::Array(_, _) => Ty::Inferred,
+            TypeAnnotation::Array(elem, len) => {
+                // `T[N]` — the length must be a literal so the C type is fixed.
+                let inner = self.resolve_type(&elem.node);
+                let n = match len.node.as_ref() {
+                    AstExpr::Int(n) if *n >= 0 => *n as usize,
+                    _ => {
+                        self.errors.push(SemanticErrorWithSpan {
+                            error: SemanticError::NotSupported(
+                                "array length must be a non-negative literal".into(),
+                            ),
+                            span: len.span,
+                        });
+                        0
+                    }
+                };
+                Ty::Array(Box::new(inner), n)
+            }
             TypeAnnotation::Result(_, _) => Ty::Inferred,
             TypeAnnotation::Function(_, _) => Ty::Inferred,
             TypeAnnotation::Arena(inner) => {
@@ -163,6 +179,9 @@ impl SemaCtx {
                         Some(rt) => self.resolve_type(&rt.node),
                         None => Ty::Void,
                     };
+                    if let Some(rt) = &f.return_type {
+                        self.reject_array_return(&return_ty, rt.span);
+                    }
                     let _qualified = f.name.node.clone();
                     self.tables.functions.insert(f.name.node.clone(), FnInfo {
                         name: f.name.node.clone(),
@@ -190,6 +209,9 @@ impl SemaCtx {
                             Some(rt) => self.resolve_type(&rt.node),
                             None => Ty::Void,
                         };
+                        if let Some(rt) = &m.node.return_type {
+                            self.reject_array_return(&return_ty, rt.span);
+                        }
                         let qualified = self.mangle_method(&self_type, &m.node.name.node);
                         self.tables.functions.insert(qualified.clone(), FnInfo {
                             name: m.node.name.node.clone(),
@@ -259,6 +281,9 @@ impl SemaCtx {
                         Some(rt) => self.resolve_type(&rt.node),
                         None => Ty::Void,
                     };
+                    if let Some(rt) = &f.return_type {
+                        self.reject_array_return(&return_ty, rt.span);
+                    }
                     let body = match &f.body {
                         Some(block) => {
                             let mut scope = Scope::new();
@@ -297,6 +322,9 @@ impl SemaCtx {
                             Some(rt) => self.resolve_type(&rt.node),
                             None => Ty::Void,
                         };
+                        if let Some(rt) = &m.node.return_type {
+                            self.reject_array_return(&return_ty, rt.span);
+                        }
                         let qualified = self.mangle_method(&self_type, &m.node.name.node);
                         let body = match &m.node.body {
                             Some(block) => {
@@ -370,12 +398,46 @@ impl SemaCtx {
         stmts
     }
 
+    /// C functions cannot return arrays by value; report instead of emitting
+    /// invalid C.
+    fn reject_array_return(&mut self, ty: &Ty, span: york_ast::span::Span) {
+        if matches!(ty, Ty::Array(..)) {
+            self.errors.push(SemanticErrorWithSpan {
+                error: SemanticError::NotSupported(
+                    "returning a fixed array by value; return a struct or slice instead".into(),
+                ),
+                span,
+            });
+        }
+    }
+
     /// An array literal adopts the declared element type, and its elements are
-    /// cast to match: `int[] xs = [1, 2];`. Also fixes up empty literals.
-    fn coerce_array_literal(&self, init: &mut hir::Expr, declared: &Ty) {
-        let Ty::Slice(inner) = declared else { return };
-        let hir::Expr::ArrayLit { elem_ty, elems } = init else { return };
-        let want = (**inner).clone();
+    /// cast to match: `int[] xs = [1, 2];` / `int[2] xs = [1, 2];`.
+    fn coerce_array_literal(
+        &self,
+        init: &mut hir::Expr,
+        declared: &Ty,
+        span: york_ast::span::Span,
+        errors: &mut Vec<SemanticErrorWithSpan>,
+    ) {
+        let elem_ty_decl = match declared {
+            Ty::Slice(inner) => Some((**inner).clone()),
+            Ty::Array(inner, _) => Some((**inner).clone()),
+            _ => None,
+        };
+        let Some(want) = elem_ty_decl else { return };
+        let hir::Expr::ArrayLit { elem_ty, elems, len } = init else { return };
+        // A fixed array may be under-filled (C zero-fills the tail) but never
+        // over-filled.
+        if let Ty::Array(_, n) = declared {
+            if elems.len() > *n {
+                errors.push(SemanticErrorWithSpan {
+                    error: SemanticError::ArrayLength { expected: *n, found: elems.len() },
+                    span,
+                });
+            }
+            *len = *n;
+        }
         if elems.is_empty() {
             *elem_ty = want;
         } else if *elem_ty != want {
@@ -396,7 +458,14 @@ impl SemaCtx {
                 let resolved_ty = ty.as_ref().map(|t| self.resolve_type(&t.node)).unwrap_or(Ty::Inferred);
                 let mut init = value.as_ref().map(|e| self.lower_expr(e, scope, errors));
                 if let Some(e) = init.as_mut() {
-                    self.coerce_array_literal(e, &resolved_ty);
+                    let span = value
+                        .as_ref()
+                        .map(|v| v.span)
+                        .unwrap_or(york_ast::span::Span::new(
+                            york_ast::span::BytePos::ZERO,
+                            york_ast::span::BytePos::ZERO,
+                        ));
+                    self.coerce_array_literal(e, &resolved_ty, span, errors);
                 }
                 let final_ty = match (&resolved_ty, &init) {
                     (Ty::Inferred, Some(e)) => self.infer_expr_type(e, scope).unwrap_or(Ty::Inferred),
@@ -413,7 +482,7 @@ impl SemaCtx {
             AstStmt::Var { name, ty, value } => {
                 let resolved_ty = ty.as_ref().map(|t| self.resolve_type(&t.node)).unwrap_or(Ty::Inferred);
                 let mut init = self.lower_expr(value, scope, errors);
-                self.coerce_array_literal(&mut init, &resolved_ty);
+                self.coerce_array_literal(&mut init, &resolved_ty, value.span, errors);
                 let final_ty = match (&resolved_ty, &init) {
                     (Ty::Inferred, e) => self.infer_expr_type(e, scope).unwrap_or(Ty::Inferred),
                     (t, _) => t.clone(),
@@ -758,7 +827,7 @@ impl SemaCtx {
                     }
                     // File I/O builtins — pass directly to C stdlib.
                     if name == "fopen" || name == "fclose" {
-                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         return hir::Expr::Call { callee: name.to_string(), resolved: name.to_string(), args: lowered_args };
                     }
                     if name == "fprintf" {
@@ -769,25 +838,25 @@ impl SemaCtx {
                         return hir::Expr::Call { callee: name.to_string(), resolved: name.to_string(), args: c_args };
                     }
                     if name == "fputs" {
-                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         return hir::Expr::Call { callee: name.to_string(), resolved: name.to_string(), args: lowered_args };
                     }
                     // write_file(path, content) — one-shot file write, returns bool.
                     if name == "write_file" || name == "append_file" {
-                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         let resolved = if name == "write_file" { "__york_write_file" } else { "__york_append_file" };
                         return hir::Expr::Call { callee: name.to_string(), resolved: resolved.to_string(), args: lowered_args };
                     }
                     if name == "read_file" {
-                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         return hir::Expr::Call { callee: name.to_string(), resolved: "__york_read_file".to_string(), args: lowered_args };
                     }
                     if name == "file_exists" {
-                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         return hir::Expr::Call { callee: name.to_string(), resolved: "__york_file_exists".to_string(), args: lowered_args };
                     }
                     if name == "str_len" || name == "strlen" {
-                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         return hir::Expr::Call { callee: name.to_string(), resolved: "__york_strlen".to_string(), args: lowered_args };
                     }
                     if name == "to_string" {
@@ -809,11 +878,11 @@ impl SemaCtx {
                         return hir::Expr::Call { callee: name.to_string(), resolved: resolved.to_string(), args: lowered_args };
                     }
                     if name == "exec" || name == "system_cmd" {
-                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         return hir::Expr::Call { callee: name.to_string(), resolved: "__york_exec".to_string(), args: lowered_args };
                     }
                     if name == "exit" {
-                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         return hir::Expr::Call { callee: name.to_string(), resolved: "__york_exit".to_string(), args: lowered_args };
                     }
                     if name == "abs" {
@@ -823,19 +892,19 @@ impl SemaCtx {
                         return hir::Expr::Call { callee: name.to_string(), resolved: resolved.to_string(), args: lowered_args };
                     }
                     if name == "sqrt" || name == "pow" || name == "floor" || name == "ceil" || name == "round" {
-                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         return hir::Expr::Call { callee: name.to_string(), resolved: name.to_string(), args: lowered_args };
                     }
                     // Trig and log builtins — pass through to C math.h. ln maps to C log.
                     if name == "sin" || name == "cos" || name == "tan" || name == "ln"
                         || name == "log10" || name == "exp" {
-                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         let resolved = if name == "ln" { "log".to_string() } else { name.to_string() };
                         return hir::Expr::Call { callee: name.to_string(), resolved: resolved.to_string(), args: lowered_args };
                     }
                     // env(name) -> getenv(name) or "".
                     if name == "env" {
-                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         return hir::Expr::Call { callee: name.to_string(), resolved: "__york_env".to_string(), args: lowered_args };
                     }
                     // platform_name() -> "windows" | "linux" | "macos" | "freebsd" | "unknown".
@@ -860,19 +929,19 @@ impl SemaCtx {
                         return hir::Expr::Call { callee: name.to_string(), resolved, args: lowered_args };
                     }
                     if name == "math_sqrt" || name == "sqrt" {
-                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         return hir::Expr::Call { callee: name.to_string(), resolved: "__york_math_sqrt".to_string(), args: lowered_args };
                     }
                     if name == "math_pow" || name == "pow" {
-                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         return hir::Expr::Call { callee: name.to_string(), resolved: "__york_math_pow".to_string(), args: lowered_args };
                     }
                     if name == "sleep" || name == "sleep_ms" || name == "delay" {
-                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         return hir::Expr::Call { callee: name.to_string(), resolved: "__york_sleep".to_string(), args: lowered_args };
                     }
                     if name == "now" || name == "epoch_ms" {
-                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         return hir::Expr::Call { callee: name.to_string(), resolved: "__york_now".to_string(), args: lowered_args };
                     }
                     if name == "os_cpu_count" || name == "os_total_memory" || name == "os_pid"
@@ -892,7 +961,7 @@ impl SemaCtx {
                         || name == "math_is_prime" || name == "math_gcd" || name == "math_lcm"
                         || name == "str_levenshtein"
                         || name == "str_first" || name == "str_last" {
-                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         let resolved = match name {
                             "random_float" => "__york_random_float",
                             "math_sign" => "__york_math_sign",
@@ -941,7 +1010,7 @@ impl SemaCtx {
                         || name == "net_send" || name == "net_recv" || name == "net_close"
                         || name == "bin_pack" || name == "bin_unpack" || name == "crypto_hash" || name == "thread_spawn"
                         || name == "thread_join" || name == "thread_self" {
-                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         let resolved = match name {
                             "net_listen" => "__york_net_listen",
                             "net_accept" => "__york_net_accept",
@@ -962,7 +1031,7 @@ impl SemaCtx {
                         || name == "window_is_open" || name == "window_poll_events" || name == "window_run_loop"
                         || name == "window_last_command" || name == "message_box"
                         || name == "control_button" || name == "control_label" || name == "control_textbox" || name == "control_set_text" {
-                        let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                        let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         let resolved = match name {
                             "window_create" => "__york_window_create",
                             "window_show" => "__york_window_show",
@@ -992,7 +1061,7 @@ impl SemaCtx {
                         });
                     }
                 }
-                let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                 let callee_name = self.expr_name(callee);
                 hir::Expr::Call { callee: callee_name, resolved, args: lowered_args }
             }
@@ -1000,6 +1069,7 @@ impl SemaCtx {
             AstExpr::MethodCall { receiver, method, args } => {
                 let recv = self.lower_expr(receiver, scope, errors);
                 let recv_ty = self.infer_expr_type(&recv, scope);
+                let recv_ty_for_mangle = recv_ty.clone();
                 let method_name = method.node.clone();
                 let resolved = if matches!(recv_ty, Some(Ty::Str)) {
                     match method_name.as_str() {
@@ -1035,9 +1105,37 @@ impl SemaCtx {
                         }
                     }
                 } else {
-                    self.mangle_method(&recv_ty.unwrap_or(Ty::Inferred), &method_name)
+                    self.mangle_method(&recv_ty_for_mangle.unwrap_or(Ty::Inferred), &method_name)
                 };
-                let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                // Fixed-size arrays lower to plain C: no runtime helper needed.
+                if let Some(Ty::Array(_elem, n)) = recv_ty.clone() {
+                    match method_name.as_str() {
+                        "len" | "length" | "count" => return hir::Expr::Int(n as i64),
+                        "is_empty" | "isEmpty" => return hir::Expr::Bool(n == 0),
+                        "at" | "get" => {
+                            let idx = lowered_args.into_iter().next().unwrap_or(hir::Expr::Null);
+                            return hir::Expr::Index {
+                                object: Box::new(recv),
+                                index: Box::new(idx),
+                            };
+                        }
+                        "first" => {
+                            return hir::Expr::Index {
+                                object: Box::new(recv),
+                                index: Box::new(hir::Expr::Int(0)),
+                            }
+                        }
+                        "last" => {
+                            return hir::Expr::Index {
+                                object: Box::new(recv),
+                                index: Box::new(hir::Expr::Int(n as i64 - 1)),
+                            }
+                        }
+                        _ => {}
+                    }
+                    let _ = _elem;
+                }
                 hir::Expr::MethodCall {
                     receiver: Box::new(recv),
                     method: method_name,
@@ -1093,15 +1191,27 @@ impl SemaCtx {
                         name: n.clone(), ty: t.clone(), default: None
                     }).collect())
                     .unwrap_or_default();
-                let lowered_args = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
+                let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                 hir::Expr::New { struct_name, defaults: default_fields, args: lowered_args }
             }
 
             AstExpr::StructLiteral { path, fields } => {
                 let struct_name = path.segments.last().map(|s| s.node.clone()).unwrap_or_default();
-                let lowered_fields = fields.iter().map(|(name, val)| {
-                    (name.node.clone(), self.lower_expr(val, scope, errors))
-                }).collect();
+                let field_types: Vec<(String, Ty)> = self
+                    .tables
+                    .structs
+                    .get(&struct_name)
+                    .map(|s| s.fields.clone())
+                    .unwrap_or_default();
+                let mut lowered_fields = Vec::with_capacity(fields.len());
+                for (name, val) in fields {
+                    let mut e = self.lower_expr(val, scope, errors);
+                    if let Some((_, fty)) = field_types.iter().find(|(n, _)| *n == name.node) {
+                        let fty = fty.clone();
+                        self.coerce_array_literal(&mut e, &fty, val.span, errors);
+                    }
+                    lowered_fields.push((name.node.clone(), e));
+                }
                 hir::Expr::StructLiteral { struct_name, fields: lowered_fields }
             }
 
@@ -1155,8 +1265,9 @@ impl SemaCtx {
             }
 
             AstExpr::Array(elems) => {
-                // `[a, b, c]` — element type comes from the first element. An
-                // empty literal takes its type from the declared variable type.
+                // `[a, b, c]` — a fixed-size array whose length is known here.
+                // Element type comes from the first element; an empty literal
+                // adopts the declared variable type.
                 let lowered = elems
                     .iter()
                     .map(|e| self.lower_expr(e, scope, errors))
@@ -1165,7 +1276,8 @@ impl SemaCtx {
                     .first()
                     .and_then(|e| self.infer_expr_type(e, scope))
                     .unwrap_or(Ty::I32);
-                hir::Expr::ArrayLit { elem_ty, elems: lowered }
+                let n = lowered.len();
+                hir::Expr::ArrayLit { elem_ty, elems: lowered, len: n }
             }
 
             AstExpr::ArrayRepeat { value, count } => {
@@ -1189,6 +1301,7 @@ impl SemaCtx {
                 hir::Expr::ArrayLit {
                     elem_ty,
                     elems: (0..n).map(|_| v.clone()).collect(),
+                    len: n,
                 }
             }
 
@@ -1325,6 +1438,11 @@ impl SemaCtx {
             hir::Expr::This => scope.lookup("self"),
             hir::Expr::Var(name) => scope.lookup(name),
             hir::Expr::EnumRef { enum_name, .. } => Some(Ty::Enum(enum_name.clone())),
+            hir::Expr::StructLiteral { struct_name, .. } => Some(Ty::Struct(struct_name.clone())),
+            hir::Expr::New { struct_name, .. } => Some(Ty::Struct(struct_name.clone())),
+            hir::Expr::Cast { ty, .. } => Some(ty.clone()),
+            hir::Expr::Sizeof(_) | hir::Expr::Alignof(_) => Some(Ty::I64),
+            hir::Expr::ArrayLit { elem_ty, len, .. } => Some(Ty::Array(Box::new(elem_ty.clone()), *len)),
             hir::Expr::Field { object, field } => {
                 let recv_ty = self.infer_expr_type(object, scope)?;
                 if let Ty::Struct(name) = recv_ty {
@@ -1362,6 +1480,16 @@ impl SemaCtx {
                         return match method.as_str() {
                             "len" | "length" | "count" => Some(Ty::I64),
                             "get" | "at" => Some((*inner).clone()),
+                            _ => self.tables.functions.get(resolved).map(|f| f.return_ty.clone()),
+                        };
+                    }
+                    if let Ty::Array(inner, _) = &recv_ty {
+                        return match method.as_str() {
+                            "len" | "length" | "count" => Some(Ty::I64),
+                            "get" | "at" => Some((**inner).clone()),
+                            "first" => Some((**inner).clone()),
+                            "last" => Some((**inner).clone()),
+                            "is_empty" | "isEmpty" => Some(Ty::Bool),
                             _ => self.tables.functions.get(resolved).map(|f| f.return_ty.clone()),
                         };
                     }
@@ -1491,6 +1619,7 @@ impl SemaCtx {
             hir::Expr::Index { object, .. } => {
                 match self.infer_expr_type(object, scope)? {
                     Ty::Slice(inner) => Some(*inner),
+                    Ty::Array(inner, _) => Some(*inner),
                     Ty::Arena(inner) => Some(*inner),
                     _ => None,
                 }

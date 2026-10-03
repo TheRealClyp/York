@@ -192,3 +192,95 @@ public static void main(String[] args) {
     let out = compile_run(src).expect("for-in over arena should run");
     assert_eq!(out.lines().collect::<Vec<_>>(), ["3"]);
 }
+
+#[test]
+fn fixed_array_literal_indexes_first_last_and_sizeof() {
+    let src = r#"
+fn main() {
+    int[5] fixed = [1, 2, 3, 4, 5];
+    println(fixed.len());
+    println(fixed[4]);
+    println(fixed.first());
+    println(fixed.last());
+    println(sizeof(int[10]));
+}
+"#;
+    let out = compile_run(src).expect("fixed array literal should run");
+    assert_eq!(out.lines().collect::<Vec<_>>(), ["5", "5", "1", "5", "40"]);
+}
+
+#[test]
+fn fixed_array_scalar_init_zero_fills() {
+    let src = r#"
+fn main() {
+    int[3] manual = 0;
+    println(manual.len());
+    println(manual[0]);
+    println(manual[2]);
+}
+"#;
+    let out = compile_run(src).expect("scalar-initialised fixed array should run");
+    assert_eq!(out.lines().collect::<Vec<_>>(), ["3", "0", "0"]);
+}
+
+#[test]
+fn fixed_array_underfill_zero_fills_tail() {
+    let src = r#"
+fn main() {
+    int[5] few = [1, 2];
+    println(few.len());
+    println(few[0]);
+    println(few[4]);
+}
+"#;
+    let out = compile_run(src).expect("under-filled fixed array should run");
+    assert_eq!(out.lines().collect::<Vec<_>>(), ["5", "1", "0"]);
+}
+
+#[test]
+fn fixed_array_of_structs() {
+    let src = r#"
+struct Point { x: int, y: int }
+
+fn main() {
+    Point[2] pts = [Point { x: 1, y: 2 }, Point { x: 3, y: 4 }];
+    println(pts.len());
+    println(pts[1].x);
+    println(pts[0].y);
+}
+"#;
+    let out = compile_run(src).expect("fixed array of structs should run");
+    assert_eq!(out.lines().collect::<Vec<_>>(), ["2", "3", "2"]);
+}
+
+#[test]
+fn fixed_array_repeat_float() {
+    let src = r#"
+fn main() {
+    double[4] ds = [1.5; 4];
+    println(ds.len());
+    println(ds[3]);
+}
+"#;
+    let out = compile_run(src).expect("repeat-filled double array should run");
+    assert_eq!(out.lines().collect::<Vec<_>>(), ["4", "1.5"]);
+}
+
+#[test]
+fn fixed_array_overfill_is_a_semantic_error() {
+    let src = r#"
+fn main() {
+    int[2] over = [1, 2, 3];
+    println(over.len());
+}
+"#;
+    let lexed = york_lexer::lex(src);
+    let parsed = york_parser::parse(&lexed.tokens);
+    assert!(parsed.errors.is_empty(), "should parse: {:?}", parsed.errors);
+    let sema = york_sema::analyze(&parsed.program);
+    assert!(
+        sema.errors.iter().any(|e| e.to_string().contains("length mismatch")),
+        "expected a length mismatch error, got: {:?}",
+        sema.errors
+    );
+}

@@ -4,7 +4,7 @@ All notable changes to York are tracked here. The site and `release` folder mirr
 
 ## 1.1.4 — Multi-File Imports, `HashMap<K, V>`, Arrays & Casts
 
-Three previously-advertised language features are now **actually implemented**, plus runnable examples and regression tests for each.
+The advertised M1 features below are now **actually implemented**, plus runnable examples and regression tests for each.
 
 - **Multi-File Module Linking** — `import "path/to/file.yk";` is real. Paths resolve **relative to the importing file** (not the project root), imports nest **transitively**, and loading is **cycle-safe** — every file is parsed at most once, tracked by canonical path, so import diamonds and cycles work. Imported files need no `main`. A missing import reports the file it looked for and the directory it searched.
   - Example: `examples/multi_file/` (`york run examples/multi_file/main.yk`)
@@ -14,13 +14,14 @@ Three previously-advertised language features are now **actually implemented**, 
   - A missing key returns the zero value of `V` — and for `string` that is `""`, never `NULL`, so `printf("%s", …)` stays defined.
   - Example: `examples/hashmap_demo.yk`
   - Tests: `crates/york_codegen_c/tests/hashmap.rs`
+- **Fixed-size arrays `T[N]`** — a real C array with a compile-time length. `.len()`, `.first()`, `.last()`, `.at()`, indexing, and `sizeof(T[N])` all work. Initialise from a literal or a scalar zero value; a shorter literal zero-fills the tail and a longer one is a compile error. Element types are enforced (`int[5]`, `Point[2]`, `double[4]`).
 - **Array literals** — `[a, b, c]`, `[value; count]`, and `[]` compile to a real C array that decays to a slice. Elements adopt the declared element type, so `int[] xs = [1, 2]` is `int`, not a widened `long long`. MSVC-safe: no compound literals, no statement expressions.
   - Example: `examples/syntax_demo.yk`
   - Tests: `crates/york_codegen_c/tests/syntax_features.rs`, `crates/york_parser/tests/syntax_features.rs`
 - **Explicit casts** — `(T) expr`, with the parser disambiguating casts from parenthesised expressions. Numeric conversions are checked at compile time; casting `0` to a struct/enum/arena/map produces that type's zero value.
 - **`sizeof(T)` / `alignof(T)`** — emitted directly as C compile-time constants (`sizeof`/`__alignof`).
 - **Bug fix** — `for x in xs { … }` no longer mis-parses the loop body as a struct literal on the iterable, which made the Rust-style loop unusable.
-- **Docs corrected** — README claims now match the implementation: multi-file imports and `HashMap` moved into "Working Today"; arrays, casts, and `sizeof`/`alignof` are documented as working; `Result<T,E>`/`Option<T>` explicitly marked *planned* rather than supported.
+- **Docs corrected** — README claims now match the implementation: multi-file imports, `HashMap`, fixed arrays, arrays, casts, and `sizeof`/`alignof` are documented as working; `Result<T,E>`/`Option<T>` explicitly marked *planned* rather than supported.
 
 ---
 

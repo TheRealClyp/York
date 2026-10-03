@@ -1,5 +1,5 @@
 use york_ast::span::{Spanned, Span};
-use york_ast::{PrimitiveType, TypeAnnotation, Path};
+use york_ast::{Expr, PrimitiveType, TypeAnnotation, Path};
 use york_ast::Token;
 
 use crate::Parser;
@@ -101,7 +101,7 @@ fn parse_type_postfix(p: &mut Parser, base: TypeAnnotation) -> TypeAnnotation {
 
     loop {
         if p.at(&Token::LBracket) {
-            // int[] slice
+            // int[] slice, or int[6] fixed-size array.
             let before = p.peek_span().lo;
             p.advance();
             if p.at(&Token::RBracket) {
@@ -109,6 +109,19 @@ fn parse_type_postfix(p: &mut Parser, base: TypeAnnotation) -> TypeAnnotation {
                 let after = p.previous_span().hi;
                 current = TypeAnnotation::Slice(Box::new(Spanned::new(current, Span::new(before, after))));
                 continue;
+            }
+            if let Token::IntLiteral(n) = p.peek_tok().clone() {
+                let len_span = p.peek_span();
+                p.advance();
+                if p.eat(&Token::RBracket) {
+                    let after = p.previous_span().hi;
+                    current = TypeAnnotation::Array(
+                        Box::new(Spanned::new(current, Span::new(before, after))),
+                        Spanned::new(Box::new(Expr::Int(n)), len_span),
+                    );
+                    continue;
+                }
+                p.set_pos(p.pos() - 1);
             }
         }
         if p.at(&Token::Question) {

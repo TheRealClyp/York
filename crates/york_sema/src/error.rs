@@ -30,6 +30,9 @@ pub enum SemanticError {
     #[error("cannot index into type `{0}`")]
     NotIndexable(String),
 
+    #[error("fixed array length mismatch: expected {expected}, found {found}")]
+    ArrayLength { expected: usize, found: usize },
+
     #[error("`{0}` is not supported yet")]
     NotSupported(String),
 }

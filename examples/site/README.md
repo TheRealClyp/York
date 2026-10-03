@@ -242,7 +242,8 @@ York is strictly typed at compile time with local type inference for variable bi
 - **`enum`** — `enum Name { Variant, ... }` unit variants compiled to C enums; referenced as `Name.Variant`.
 - **`impl`** — `impl Type { ... }` with implicit `self` / `this`; methods mangle to `Type_method`.
 - **`Arena<T>`** — generic contiguous buffer (§5). Also accepts `arena(T)` annotation style.
-- **Slices `T[]`** — lowered to `T*`; supports `for (x : slice)` and `slice[i]`. Slices are raw pointers, so they carry no length; use `Arena<T>` or a literal length when you need one.
+- **Slices `T[]`** — lowered to `T*`; supports `for (x : slice)` and `slice[i]`. Slices are raw pointers, so they carry no length; use `Arena<T>`, a fixed array `T[N]`, or a literal length when you need one.
+- **Fixed arrays `T[N]`** — a real C array with a compile-time length. Supports `.len()`, `.first()`, `.last()`, `.at()`, index assignment, and `sizeof(T[N])`. A shorter literal zero-fills the tail; a longer literal is a compile error.
 - **Array literals** — `[a, b, c]`, `[value; count]`, and `[]`. They lower to a real C array and decay to a slice; indexing and C-style `for` loops work as expected.
 - **Explicit casts** — `(T) expr`. Numeric conversions are checked; casting `0` to a struct/enum/arena/map yields its zero value.
 - **`sizeof(T)` / `alignof(T)`** — compile-time constants emitted straight into the C.
@@ -819,7 +820,7 @@ The GUI functions compile everywhere (no-op stubs off Windows); networking and t
 ### Remaining Boundaries & Work-in-Progress:
 - **Tuples**, **`match` expressions**, **closures/lambdas**.
 - **Tagged/payload enum variants** — only unit variants compile to plain C enums.
-- **Slice lengths** — slices lower to raw `T*`, so `.len()` and `for (x : slice)` are not available on them; `Arena<T>` and array-literal lengths cover the common cases.
+- **Slice lengths** — slices lower to raw `T*`, so `.len()` and `for (x : slice)` are not available on them; fixed arrays `T[N]` and `Arena<T>` carry lengths.
 - **`Result<T, E>` / `Option<T>` sum types** — planned; error handling today is `assert` plus explicit zero-value checks (see `m.get_or(key, fallback)` for the same effect on maps).
 - **Custom `yc` Systems Compiler Driver** — Standalone GCC/Clang-compatible compiler driver with full optimization flags (`-O2`, `-O3`).
 - **Wasm backend** — `york_codegen_wasm` / `york_web` are stubs; the web path today is `york mobile` producing a PWA from native code, not a compiled-to-Wasm toolchain.

@@ -12,11 +12,20 @@ pub struct CGen {
     in_main: bool,
     /// Counter for compiler-generated temporaries (array literals, match arms).
     tmp: usize,
+    /// Declared field types per struct, used to lower struct literals
+    /// (array fields need brace init, slice fields need a pointer).
+    struct_fields: std::collections::HashMap<String, Vec<(String, Ty)>>,
 }
 
 impl CGen {
     pub fn new() -> Self {
-        CGen { out: String::new(), indent: 0, in_main: false, tmp: 0 }
+        CGen {
+            out: String::new(),
+            indent: 0,
+            in_main: false,
+            tmp: 0,
+            struct_fields: std::collections::HashMap::new(),
+        }
     }
 
     /// Allocate a unique C identifier for a compiler-generated temporary.
@@ -40,6 +49,7 @@ impl CGen {
             Ty::Arena(inner) => format!("Arena{}", self.tag(inner)),
             Ty::HashMap(k, v) => format!("HashMap{}To{}", self.tag(k), self.tag(v)),
             Ty::Slice(inner) => format!("Sl{}", self.tag(inner)),
+            Ty::Array(inner, n) => format!("A{}{}", self.tag(inner), n),
             Ty::Str => "Str".into(),
             Ty::Bool => "Bool".into(),
             Ty::Char => "Char".into(),
@@ -83,8 +93,33 @@ impl CGen {
             Ty::Arena(inner) => format!("Arena_{}", self.tag(inner)),
             Ty::HashMap(k, v) => format!("HashMap_{}_{}", self.tag(k), self.tag(v)),
             Ty::Slice(inner) => format!("{}*", self.c_type(inner)),
+            Ty::Array(inner, n) => format!("{}[{n}]", self.c_type(inner)),
             Ty::Inferred => "int".into(),
         }
+    }
+
+    /// C declaration form, e.g. `int xs[5]` rather than `int[5] xs`.
+    fn c_decl(&self, ty: &Ty, name: &str) -> String {
+        match ty {
+            Ty::Array(inner, n) => format!("{} {name}[{n}]", self.c_type(inner)),
+            _ => format!("{} {name}", self.c_type(ty)),
+        }
+    }
+
+    /// Brace body for an array literal, e.g. `{1, 2, 3}`. Returning the brace
+    /// form lets callers inline it instead of creating a temporary array.
+    fn array_lit_braces(&mut self, lit: &hir::Expr) -> Option<String> {
+        let hir::Expr::ArrayLit { elems, .. } = lit else { return None };
+        let vals = elems.iter().map(|e| self.expr(e)).collect::<Vec<_>>();
+        Some(format!("{{{}}}", vals.join(", ")))
+    }
+
+    /// Brace body for a fixed-array declaration initialized from a literal.
+    fn array_lit_body(&mut self, lit: &hir::Expr, ty: &Ty) -> Option<String> {
+        if !matches!(ty, Ty::Array(..)) {
+            return None;
+        }
+        self.array_lit_braces(lit)
     }
 
     fn default_init(&self, ty: &Ty) -> String {
@@ -182,6 +217,20 @@ impl CGen {
             hir::Expr::StructLiteral { struct_name, fields } => {
                 let mut parts = Vec::new();
                 for (name, value) in fields {
+                    // Array members must be brace-initialised; a slice member
+                    // takes the temporary array's address (via its name).
+                    let is_array_field = self
+                        .struct_fields
+                        .get(struct_name)
+                        .and_then(|fs| fs.iter().find(|(n, _)| n == name))
+                        .map(|(_, t)| matches!(t, Ty::Array(..)))
+                        .unwrap_or(false);
+                    if is_array_field {
+                        if let Some(body) = self.array_lit_braces(value) {
+                            parts.push(format!(".{name} = {body}"));
+                            continue;
+                        }
+                    }
                     parts.push(format!(".{name} = {}", self.expr(value)));
                 }
                 format!("({}){{{}}}", struct_name, parts.join(", "))
@@ -227,12 +276,12 @@ impl CGen {
                 // MSVC's `__alignof` is the portable spelling for `alignof` here.
                 format!("__alignof({})", self.c_type(ty))
             }
-            hir::Expr::ArrayLit { elem_ty, elems } => {
+            hir::Expr::ArrayLit { elem_ty, elems, len } => {
                 // A slice literal becomes a real temporary array; C compound
                 // literals are only valid for array/struct/union types.
                 let id = self.tmp_name("arr");
                 let vals = elems.iter().map(|e| self.expr(e)).collect::<Vec<_>>();
-                let n = vals.len().max(1);
+                let n = (*len).max(1);
                 let body = if vals.is_empty() {
                     self.default_init(elem_ty)
                 } else {
@@ -316,6 +365,15 @@ fn format_spec(ty: &Ty) -> &'static str {
 /// Generate C source for the whole program.
 pub fn generate(program: &Program) -> String {
     let mut g = CGen::new();
+
+    for item in &program.items {
+        if let hir::Item::Struct(s) = item {
+            g.struct_fields.insert(
+                s.name.clone(),
+                s.fields.iter().map(|f| (f.name.clone(), f.ty.clone())).collect(),
+            );
+        }
+    }
 
     g.line("/* Generated by York -> C */");
     g.line("#include <stdio.h>");
@@ -1149,7 +1207,7 @@ pub fn generate(program: &Program) -> String {
             // Skip redeclaring: the typedef foward-declared this name already.
             g.line(&format!("struct {name} {{", name = s.name));
             for f in &s.fields {
-                g.line(&format!("    {} {};", g.c_type(&f.ty), f.name));
+                g.line(&format!("    {};", g.c_decl(&f.ty, &f.name)));
             }
             g.line("};");
             g.line("");
@@ -1276,7 +1334,7 @@ fn fn_signature(f: &hir::FnDef, g: &CGen) -> String {
             if name == "self" {
                 format!("{}* self", g.c_type(ty))
             } else {
-                format!("{} {}", g.c_type(ty), name)
+                g.c_decl(ty, name)
             }
         })
         .collect::<Vec<_>>()
@@ -1312,6 +1370,7 @@ impl CGen {
         match s {
             hir::Stmt::VarDecl { name, ty, init, is_const } => {
                 let c_type = self.c_type(ty);
+                let decl = self.c_decl(ty, name);
                 let kw = if *is_const { "const " } else { "" };
                 // Arena var decl with `new Arena(n)` initializer.
                 if let Some(hir::Expr::New { struct_name, args, .. }) = init {
@@ -1337,10 +1396,30 @@ impl CGen {
                         {
                             return;
                         }
-                        self.line(&format!("{kw}{c_type} {name} = {rhs};"));
+                // `int xs[5] = { ... };` — array literals are inlined so the C
+                // always gets a brace-enclosed initializer list.
+                if let Ty::Array(..) = ty {
+                    match Some(init) {
+                        Some(lit) => {
+                            let body = self
+                                .array_lit_body(lit, ty)
+                                .unwrap_or_else(|| format!("{{{rhs}}}"));
+                            self.line(&format!("{kw}{decl} = {body};"));
+                        }
+                        None => {
+                            let zero = match ty {
+                                Ty::Array(elem, _) => self.default_init(elem),
+                                _ => "0".to_string(),
+                            };
+                            self.line(&format!("{kw}{decl} = {{{zero}}};"));
+                        }
+                    }
+                    return;
+                }
+                self.line(&format!("{kw}{decl} = {rhs};"));
                     }
                     None if matches!(ty, Ty::Struct(_)) => {
-                        self.line(&format!("{kw}{c_type} {name} = {{0}};"));
+                        self.line(&format!("{kw}{decl} = {{0}};"));
                     }
                     None if matches!(ty, Ty::Arena(_)) => {
                         self.line(&format!("{kw}{c_type} {name};"));
@@ -1468,11 +1547,26 @@ impl CGen {
     fn for_stmt(&mut self, s: &hir::Stmt) -> String {
         match s {
             hir::Stmt::VarDecl { name, ty, init, is_const } => {
-                let c_type = self.c_type(ty);
+                let decl = self.c_decl(ty, name);
                 let kw = if *is_const { "const " } else { "" };
+                // Arrays need a brace initializer, never a bare scalar.
+                if let Ty::Array(elem, _) = ty {
+                    return match init {
+                        Some(lit) => {
+                            let body = self
+                                .array_lit_body(lit, ty)
+                                .unwrap_or_else(|| format!("{{{}}}", self.expr(lit)));
+                            format!("{kw}{decl} = {body};")
+                        }
+                        None => {
+                            let zero = self.default_init(elem);
+                            format!("{kw}{decl} = {{{zero}}};")
+                        }
+                    };
+                }
                 match init {
-                    Some(init) => format!("{kw}{c_type} {name} = {};", self.expr(init)),
-                    None => format!("{kw}{c_type} {name} = {};", self.default_init(ty)),
+                    Some(init) => format!("{kw}{decl} = {};", self.expr(init)),
+                    None => format!("{kw}{decl} = {};", self.default_init(ty)),
                 }
             }
             hir::Stmt::Expr(e) => format!("{};", self.expr(e)),

@@ -26,6 +26,21 @@ fn main() {
     long[] wide = [1, 2];
     println(wide[1]);
 
+    // ── Fixed-size arrays ─────────────────────────────────────────
+    int[5] fixed = [1, 2, 3, 4, 5];
+    println(fixed.len());
+    println(fixed.first());
+    println(fixed.last());
+    println(fixed[4]);
+
+    // A scalar initializer zero-fills the whole array.
+    int[3] zeroed = 0;
+    println(zeroed[2]);
+
+    // Struct elements keep their declared type.
+    Point[2] pts = [Point { x: 1, y: 2 }, Point { x: 3, y: 4 }];
+    println(pts[1].x);
+
     // ── Explicit casts ────────────────────────────────────────────
     int truncated = (int) 3.99;
     println(truncated);
