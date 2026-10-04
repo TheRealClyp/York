@@ -1,0 +1,21 @@
+fn main() {
+    println("=== York v1.2.0 Mega-Upgrade Demo ===");
+
+    // 1. Advanced Crypto SHA256 & Hashing
+    string hash = crypto_sha256("york-systems-power");
+    println(hash);
+
+    // 2. Regex Pattern Matching
+    string matched = regex_match("york", "welcome to the york programming language");
+    println(matched);
+
+    // 3. HTTP Client GET
+    string ip = http_get("https://httpbin.org/ip");
+    println(ip);
+
+    // 4. Encrypted DB & JSON parsing
+    db_put("master.ydb", "config", "{\"port\": 8080, \"mode\": \"production\"}", "secret999");
+    string cfg = db_get("master.ydb", "config", "secret999");
+    println(cfg);
+    println(json_get(cfg, "port"));
+}
