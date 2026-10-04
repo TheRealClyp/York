@@ -1,0 +1,9 @@
+fn main() {
+    string db_path = "vault.ydb";
+    string secret = "super-secret-key-123";
+
+    db_put(db_path, "account:admin", "{ \"role\": \"superuser\", \"balance\": 999999 }", secret);
+    
+    println("Encrypted DB Record:");
+    println(db_get(db_path, "account:admin", secret));
+}

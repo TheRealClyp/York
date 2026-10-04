@@ -1009,6 +1009,7 @@ impl SemaCtx {
                     if name == "net_listen" || name == "net_accept" || name == "net_connect"
                         || name == "net_send" || name == "net_recv" || name == "net_close"
                         || name == "bin_pack" || name == "bin_unpack" || name == "crypto_hash" || name == "thread_spawn"
+                        || name == "db_put" || name == "db_get"
                         || name == "thread_join" || name == "thread_self" {
                         let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         let resolved = match name {
@@ -1021,6 +1022,8 @@ impl SemaCtx {
                             "bin_pack" => "__york_bin_pack",
                             "bin_unpack" => "__york_bin_unpack",
                             "crypto_hash" => "__york_crypto_hash",
+                            "db_put" => "__york_db_put",
+                            "db_get" => "__york_db_get",
                             "thread_spawn" => "__york_thread_spawn",
                             "thread_join" => "__york_thread_join",
                             _ => "__york_thread_self",
@@ -1551,7 +1554,7 @@ impl SemaCtx {
                     || resolved == "__york_net_close" || resolved == "__york_bin_unpack" {
                     return Some(Ty::Void);
                 }
-                if resolved == "__york_net_recv" || resolved == "__york_crypto_hash"
+                if resolved == "__york_net_recv" || resolved == "__york_crypto_hash" || resolved == "__york_db_get"
                     || resolved == "__york_sys_username" || resolved == "__york_sys_hostname"
                     || resolved == "__york_sys_time_str" || resolved == "__york_str_slugify"
                     || resolved == "__york_str_capitalize" || resolved == "__york_str_base64_encode"
