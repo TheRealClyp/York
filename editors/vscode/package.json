@@ -1,0 +1,35 @@
+{
+  "name": "york-lang",
+  "displayName": "York",
+  "description": "Official York programming language support — fast, encrypted native systems language",
+  "version": "1.1.4",
+  "publisher": "TheRealClyp",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    {
+      "language": "york",
+      "extensions": [".yk"]
+    }
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "york",
+      "aliases": ["York", "york"],
+      "extensions": [".yk"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "york",
+      "scopeName": "source.york",
+      "path": "./syntaxes/york.tmLanguage.json"
+    }],
+    "snippets": [{
+      "language": "york",
+      "path": "./snippets/york.code-snippets"
+    }]
+  }
+}

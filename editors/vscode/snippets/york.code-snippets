@@ -1,0 +1,32 @@
+{
+  "Function Definition": {
+    "prefix": "fn",
+    "body": "fn ${1:name}(${2:params}) -> ${3:void} {\n\t$0\n}",
+    "description": "Define a York function"
+  },
+  "Struct Definition": {
+    "prefix": "struct",
+    "body": "struct ${1:Name} {\n\t${2:field}: ${3:int},\n\t$0\n}",
+    "description": "Define a York struct"
+  },
+  "Database Put": {
+    "prefix": "dbput",
+    "body": "db_put(${1:path}, ${2:key}, ${3:val}, ${4:secret});\n$0",
+    "description": "Store encrypted record in YDB"
+  },
+  "Database Get": {
+    "prefix": "dbget",
+    "body": "string ${1:res} = db_get(${2:path}, ${3:key}, ${4:secret});\n$0",
+    "description": "Retrieve encrypted record from YDB"
+  },
+  "Print Line": {
+    "prefix": "pl",
+    "body": "println(${1:value});\n$0",
+    "description": "Print line to stdout"
+  },
+  "For In Loop": {
+    "prefix": "forin",
+    "body": "for ${1:x} in ${2:iterable} {\n\t${3:// body}\n}\n$0",
+    "description": "For-in iteration over collection"
+  }
+}

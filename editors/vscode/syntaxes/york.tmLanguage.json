@@ -1,0 +1,101 @@
+{
+  "scopeName": "source.york",
+  "fileTypes": ["yk"],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#types"
+    },
+    {
+      "include": "#constants"
+    },
+    {
+      "include": "#functions"
+    },
+    {
+      "include": "#numbers"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.york",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.york",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.york",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.york",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.york",
+          "match": "\\b(if|else|while|loop|for|in|return|switch|case|default|break|continue|import|struct|enum|impl|pub|static)\\b"
+        },
+        {
+          "name": "storage.modifier.york",
+          "match": "\\b(let|var|const)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "storage.type.york",
+          "match": "\\b(int|long|double|float|bool|char|string|void|Arena|HashMap|Point)\\b"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.boolean.york",
+          "match": "\\b(true|false|null)\\b"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "support.function.builtin.york",
+          "match": "\\b(println|print|db_put|db_get|crypto_hash|fs_file_size|net_listen|net_connect|sizeof|alignof)\\b"
+        },
+        {
+          "name": "entity.name.function.york",
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.york",
+          "match": "\\b\\d+(\\.\\d+)?\\b"
+        }
+      ]
+    }
+  }
+}
