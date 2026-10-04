@@ -1,0 +1,18 @@
+fn main() {
+    println("=== York v1.2.0 Ultimate Kitchen-Sink Demo ===");
+
+    // 1. Math clamping & min/max
+    println(math_clamp(15.5, 0.0, 10.0));
+    println(math_min(42, 99));
+    println(math_max(42, 99));
+
+    // 2. String manipulation
+    println(str_reverse("york-power"));
+    println(str_repeat("ab", 4));
+
+    // 3. Benchmarking / Timing
+    long start = bench_now();
+    println(color_print("cyan", "Executing benchmark workload..."));
+    long end = bench_now();
+    println(end - start);
+}

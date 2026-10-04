@@ -1014,6 +1014,8 @@ impl SemaCtx {
                         || name == "crypto_sha256" || name == "regex_match" || name == "http_get"
                         || name == "uuid_v4" || name == "rand_string" || name == "color_print"
                         || name == "file_read_text" || name == "file_write_text" || name == "os_env"
+                        || name == "str_reverse" || name == "math_clamp" || name == "math_min"
+                        || name == "math_max" || name == "bench_now"
                         || name == "thread_join" || name == "thread_self" {
                         let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         let resolved = match name {
@@ -1040,6 +1042,11 @@ impl SemaCtx {
                             "file_read_text" => "__york_file_read_text",
                             "file_write_text" => "__york_file_write_text",
                             "os_env" => "__york_os_env",
+                            "str_reverse" => "__york_str_reverse",
+                            "math_clamp" => "__york_math_clamp",
+                            "math_min" => "__york_math_min",
+                            "math_max" => "__york_math_max",
+                            "bench_now" => "__york_bench_now",
                             "thread_spawn" => "__york_thread_spawn",
                             "thread_join" => "__york_thread_join",
                             _ => "__york_thread_self",
@@ -1556,8 +1563,12 @@ impl SemaCtx {
                     || resolved == "__york_str_word_count"
                     || resolved == "__york_thread_join" || resolved == "__york_thread_self"
                     || resolved == "__york_math_gcd" || resolved == "__york_math_lcm"
-                    || resolved == "__york_str_levenshtein" {
+                    || resolved == "__york_str_levenshtein" || resolved == "__york_math_min"
+                    || resolved == "__york_math_max" || resolved == "__york_bench_now" {
                     return Some(Ty::I64);
+                }
+                if resolved == "__york_math_clamp" {
+                    return Some(Ty::F64);
                 }
                 if resolved == "__york_window_is_open" || resolved == "__york_fs_delete_file"
                     || resolved == "__york_fs_copy_file" || resolved == "__york_discord_send"
@@ -1576,7 +1587,7 @@ impl SemaCtx {
                     || resolved == "__york_crypto_sha256" || resolved == "__york_http_get"
                     || resolved == "__york_uuid_v4" || resolved == "__york_rand_string"
                     || resolved == "__york_color_print" || resolved == "__york_file_read_text"
-                    || resolved == "__york_os_env"
+                    || resolved == "__york_os_env" || resolved == "__york_str_reverse"
                     || resolved == "__york_sys_username" || resolved == "__york_sys_hostname"
                     || resolved == "__york_sys_time_str" || resolved == "__york_str_slugify"
                     || resolved == "__york_str_capitalize" || resolved == "__york_str_base64_encode"
