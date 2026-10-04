@@ -1,0 +1,13 @@
+fn main() {
+    string token = "MTAwMDAwMDAwMDAwMDAwMDAwMA.G...fake";
+    string channel = "123456789012345678";
+
+    discord_send(token, channel, "Hello from native York! 🚀");
+
+    string raw_json = "{\"author\": \"Clyp\", \"content\": \"ping\", \"id\": 999}";
+    string author = json_get(raw_json, "author");
+    string content = json_get(raw_json, "content");
+
+    println(author);
+    println(content);
+}
