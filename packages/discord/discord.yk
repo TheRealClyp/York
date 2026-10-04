@@ -1,0 +1,13 @@
+// York Discord Package wrapper using functions
+
+fn discord_create_client(token: string) -> string {
+    return token;
+}
+
+fn discord_send_message(token: string, channelId: string, text: string) {
+    discord_send(token, channelId, text);
+}
+
+fn discord_parse_field(json: string, field: string) -> string {
+    return json_get(json, field);
+}

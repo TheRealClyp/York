@@ -1,0 +1,12 @@
+import "../discord.yk";
+
+fn main() {
+    string botToken = discord_create_client("MTAwMDAwMDAwMDAwMDAwMDAwMA.G...fake");
+
+    discord_send_message(botToken, "123456789012345678", "Hello from ypkg package import! 🚀");
+    
+    string eventData = "{\"content\": \"!help\", \"author\": \"Clyp\"}";
+    string cmd = discord_parse_field(eventData, "content");
+    
+    println(cmd);
+}
