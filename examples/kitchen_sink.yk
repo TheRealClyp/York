@@ -1,0 +1,23 @@
+fn main() {
+    println("=== York v1.2.0 Kitchen Sink Mega-Demo ===");
+
+    // 1. UUID & Random Strings
+    println(uuid_v4());
+    println(rand_string(16));
+
+    // 2. ANSI Color Formatting
+    println(color_print("green", "[SUCCESS] All systems operational!"));
+    println(color_print("red", "[ALERT] Firewall integrity check passed."));
+
+    // 3. Environment Variables
+    string user = os_env("USERNAME");
+    if (user == "") {
+        user = os_env("USER");
+    }
+    println(user);
+
+    // 4. File I/O
+    file_write_text("york_test.txt", "Hello from York v1.2.0 file system!");
+    string fileContent = file_read_text("york_test.txt");
+    println(fileContent);
+}

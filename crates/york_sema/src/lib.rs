@@ -1012,6 +1012,8 @@ impl SemaCtx {
                         || name == "db_put" || name == "db_get"
                         || name == "json_get" || name == "discord_send" || name == "discord_listen_event"
                         || name == "crypto_sha256" || name == "regex_match" || name == "http_get"
+                        || name == "uuid_v4" || name == "rand_string" || name == "color_print"
+                        || name == "file_read_text" || name == "file_write_text" || name == "os_env"
                         || name == "thread_join" || name == "thread_self" {
                         let lowered_args: Vec<hir::Expr> = args.iter().map(|a| self.lower_expr(a, scope, errors)).collect();
                         let resolved = match name {
@@ -1032,6 +1034,12 @@ impl SemaCtx {
                             "crypto_sha256" => "__york_crypto_sha256",
                             "regex_match" => "__york_regex_match",
                             "http_get" => "__york_http_get",
+                            "uuid_v4" => "__york_uuid_v4",
+                            "rand_string" => "__york_rand_string",
+                            "color_print" => "__york_color_print",
+                            "file_read_text" => "__york_file_read_text",
+                            "file_write_text" => "__york_file_write_text",
+                            "os_env" => "__york_os_env",
                             "thread_spawn" => "__york_thread_spawn",
                             "thread_join" => "__york_thread_join",
                             _ => "__york_thread_self",
@@ -1553,7 +1561,7 @@ impl SemaCtx {
                 }
                 if resolved == "__york_window_is_open" || resolved == "__york_fs_delete_file"
                     || resolved == "__york_fs_copy_file" || resolved == "__york_discord_send"
-                    || resolved == "__york_regex_match" {
+                    || resolved == "__york_regex_match" || resolved == "__york_file_write_text" {
                     return Some(Ty::Bool);
                 }
                 if resolved == "__york_window_show" || resolved == "__york_window_hide"
@@ -1566,6 +1574,9 @@ impl SemaCtx {
                 if resolved == "__york_net_recv" || resolved == "__york_crypto_hash" || resolved == "__york_db_get"
                     || resolved == "__york_json_get" || resolved == "__york_discord_listen_event"
                     || resolved == "__york_crypto_sha256" || resolved == "__york_http_get"
+                    || resolved == "__york_uuid_v4" || resolved == "__york_rand_string"
+                    || resolved == "__york_color_print" || resolved == "__york_file_read_text"
+                    || resolved == "__york_os_env"
                     || resolved == "__york_sys_username" || resolved == "__york_sys_hostname"
                     || resolved == "__york_sys_time_str" || resolved == "__york_str_slugify"
                     || resolved == "__york_str_capitalize" || resolved == "__york_str_base64_encode"
