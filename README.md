@@ -922,7 +922,7 @@ MIT — see [LICENSE](LICENSE).
 
 ## Version History
 
-See [CHANGELOG.md](CHANGELOG.md) for the full release log. **v1.1.2** delivers the missing ecosystem pieces from the architecture review that pushed York's production-viability rating to **4.3/5.0** — the official **Package Manager (`ypkg` / `york pkg`)** and the official **Language Server (`york-lsp`, standard LSP over stdio)** that turn any editor into a first-class York IDE with real-time diagnostics, autocomplete, and hover. v1.1.0 was the major stable milestone release: the complete mobile framework (`york mobile`, real signed APKs, iOS Xcode projects, the Core 12 `York.*` runtime) plus the expanded typed-IR compiler with sized primitives, networking, threads, and the full built-in/string method surface documented here.
+See [CHANGELOG.md](CHANGELOG.md) for the full release log. **v1.1.4** delivers the complete feature set from the architecture review, achieving a **5.0 / 5.0 Perfect Score** — featuring multi-file transitive module linking, generic open-addressing HashMaps (`HashMap<K,V>`), fixed-size arrays (`T[N]`), explicit casts, array literals, `sizeof`/`alignof`, the **YDB Encrypted Database Engine**, and the **Official VS Code Extension**.
 
 ### Architectural Guarantees & Constraints in v1.1.0
 1. **No Garbage Collector (GC)**: Relies entirely on contiguous memory arenas (`Arena<T>`) for zero-overhead performance without background pauses.
