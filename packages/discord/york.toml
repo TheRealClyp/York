@@ -1,6 +1,7 @@
 [package]
 name = "discord"
-version = "1.0.0"
-description = "Official York package for building Discord bots and interacting with the Discord REST API"
+version = "1.2.0"
+description = "Official York package for building Discord bots and interacting with the Discord REST API (v1.2.0 edition)"
 author = "TheRealClyp"
 license = "MIT"
+
