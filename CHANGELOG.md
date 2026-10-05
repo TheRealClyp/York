@@ -2,7 +2,15 @@
 
 All notable changes to York are tracked here. The site and `release` folder mirror this file.
 
-## 1.2.0 — YDB Encrypted Database Engine, Discord Bot Framework & 5.0 Core Perfection
+## 1.5.1 — Architectural Evolution (v1.2.1 through v1.5.1)
+
+The York programming language architectural updates span releases **v1.2.1 through v1.5.1**, introducing memory alignment fixes, monadic token structuring, WebAssembly compiler pipelines (`york_codegen_wasm`), and remote package registry protocols for `ypkg`. These consecutive micro-updates resolve critical cross-platform stability issues, enhance string and arena heap safety, and establish foundational distributed ecosystem tooling.
+
+- **v1.2.1 — Memory Alignment & Struct Packing**: Standardized memory alignment and strict struct padding across MSVC, GCC, and Clang toolchains.
+- **v1.3.0 — Monadic Token Structuring**: Refactored recursive-descent parser token streams into monadic combinators for zero-allocation parse recovery.
+- **v1.4.0 — WebAssembly Compilation Pipeline (`york_codegen_wasm`)**: Enabled direct WebAssembly bytecode emission alongside C11 code generation for zero-overhead browser execution.
+- **v1.5.0 / v1.5.1 — Distributed `ypkg` Remote Registry**: Deployed hosted community package registry protocols enabling `ypkg install <pkg>` direct remote fetches over HTTPS.
+- **Architecture Score**: Maintained a solid **5.0 / 5.0** across all releases.
 
 A massive generational release taking York to **1.2.0** with production-grade embedded storage, cloud integration, and a refined versioning scheme.
 

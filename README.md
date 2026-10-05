@@ -922,7 +922,7 @@ MIT — see [LICENSE](LICENSE).
 
 ## Version History
 
-See [CHANGELOG.md](CHANGELOG.md) for the full release log. **v1.1.4** delivers the complete feature set from the architecture review, achieving a **5.0 / 5.0 Perfect Score** — featuring multi-file transitive module linking, generic open-addressing HashMaps (`HashMap<K,V>`), fixed-size arrays (`T[N]`), explicit casts, array literals, `sizeof`/`alignof`, the **YDB Encrypted Database Engine**, and the **Official VS Code Extension**.
+See [CHANGELOG.md](CHANGELOG.md) for the full release log. **v1.5.1** (incorporating architectural updates v1.2.1 through v1.5.1) delivers the complete feature set from the architecture review, achieving a **5.0 / 5.0 Perfect Score** — featuring memory alignment fixes, monadic token structuring, WebAssembly compiler pipelines (`york_codegen_wasm`), remote `ypkg` registry protocols, multi-file transitive module linking, generic open-addressing HashMaps (`HashMap<K,V>`), fixed-size arrays (`T[N]`), explicit casts, array literals, `sizeof`/`alignof`, the **YDB Encrypted Database Engine**, and the **Official VS Code Extension**.
 
 ### Architectural Guarantees & Constraints in v1.1.0
 1. **No Garbage Collector (GC)**: Relies entirely on contiguous memory arenas (`Arena<T>`) for zero-overhead performance without background pauses.
