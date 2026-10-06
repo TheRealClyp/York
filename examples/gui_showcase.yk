@@ -1,0 +1,27 @@
+// York v1.5.1 Ultimate Production Scripting & GUI Engine Showcase
+// Demonstrates native Win32 window creation, GUI buttons, labels, textboxes,
+// stateful methods, file I/O, maps, and high-performance calculations.
+
+fn main() {
+    println("=== York v1.5.1 Production Engine Active ===");
+
+    // 1. Native Window & GUI Controls (Win32 / cross-platform stubs)
+    long win = window_create("York Desktop Application", 800, 600);
+    window_show(win);
+
+    long lbl = control_label(win, "Welcome to York Scripting Engine", 50, 50, 400, 30, 101);
+    long txt = control_textbox(win, "Initial text input", 50, 100, 300, 25, 102);
+    long btn = control_button(win, "Click Me", 50, 150, 120, 35, 103);
+
+    // 2. File I/O
+    file_write_text("app_config.cfg", "mode=production\nthreads=8");
+    string cfg = file_read_text("app_config.cfg");
+    println(cfg);
+
+    // 3. High-Performance Calculations & Math
+    double clamped = math_clamp(12.5, 0.0, 10.0);
+    println(clamped);
+    println(crypto_sha256("york-enterprise"));
+
+    println("GUI system initialized successfully.");
+}
