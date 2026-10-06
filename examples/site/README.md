@@ -826,9 +826,13 @@ The GUI functions compile everywhere (no-op stubs off Windows); networking and t
 - **Wasm backend** — `york_codegen_wasm` / `york_web` are stubs; the web path today is `york mobile` producing a PWA from native code, not a compiled-to-Wasm toolchain.
 - **Public package registry** — `ypkg publish` validates packages today; a hosted registry + `ypkg install <pkg>` remote fetch is on the roadmap.
 
-### Working Today:
-- **Multi-File Module Linking (`import "file.yk"`)** — fully supported in v1.1.4. Paths resolve relative to the importing file, nest transitively, and are cycle-safe. See §18.1.
-- **Built-in Generic `HashMap<K, V>`** — zero-overhead open-addressing maps for any key/value pair. See §5.1.
+### Working Today (v1.5.1 Ultimate Edition):
+- **Native GUI Subsystem (`window_create`, `control_button`, `control_label`, `control_textbox`)** — build desktop applications with native Win32/cross-platform widgets and event loops.
+- **YDB Encrypted Database Engine (`db_put`, `db_get`)** — built-in stream-cipher embedded key-value storage.
+- **Discord Bot Framework (`discord_send`, `json_get`)** — native REST client bindings and JSON payload query utilities.
+- **Multi-File Module Linking (`import "file.yk"`)** — cycle-safe transitive module resolution.
+- **Built-in Generic `HashMap<K, V>`** — zero-overhead open-addressing maps for any key/value pair.
+- **Advanced Utilities (`uuid_v4`, `rand_string`, `color_print`, `crypto_sha256`, `regex_match`, `http_get`, `math_clamp`)**.
 
 ---
 
